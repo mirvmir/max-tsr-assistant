@@ -1,0 +1,878 @@
+{
+  "schema_version": "1.0.0",
+  "catalog_id": "demo-catalog",
+  "version": "1.0.0",
+  "data_kind": "synthetic",
+  "review": {
+    "status": "draft"
+  },
+  "suppliers": [
+    {
+      "supplier_id": "fictional-a",
+      "display_name": "Вымышленный учебный поставщик А",
+      "contacts": [
+        {
+          "status": "unknown",
+          "value": null,
+          "reason_code": "not_known",
+          "evidence": []
+        }
+      ],
+      "source_ids": [
+        "synthetic-demo"
+      ]
+    },
+    {
+      "supplier_id": "fictional-b",
+      "display_name": "Вымышленный учебный поставщик Б",
+      "contacts": [
+        {
+          "status": "unknown",
+          "value": null,
+          "reason_code": "not_known",
+          "evidence": []
+        }
+      ],
+      "source_ids": [
+        "synthetic-demo"
+      ]
+    }
+  ],
+  "offers": [
+    {
+      "snapshot_id": "00000000-0000-0000-0000-000000000101",
+      "offer_id": "00000000-0000-0000-0001-000000000101",
+      "supplier_id": "fictional-a",
+      "seller_sku": "DEMO-SKU-1",
+      "variant": {
+        "variant_id": "00000000-0000-0000-0002-000000000101",
+        "category_id": "manual_wheelchair",
+        "manufacturer": "Вымышленный учебный производитель",
+        "model": "Учебная модель 1",
+        "modification": "Синтетическая",
+        "configuration": "Только учебная комплектация 1"
+      },
+      "profile_ref": {
+        "id": "manual-wheelchair-demo",
+        "version": "1.0.0"
+      },
+      "data_kind": "synthetic",
+      "observed_at": "2026-09-29T12:00:00Z",
+      "review": {
+        "status": "draft"
+      },
+      "attributes": {
+        "seat_width": {
+          "status": "known",
+          "value": {
+            "kind": "quantity",
+            "value": "420",
+            "unit": "mm"
+          },
+          "evidence": [
+            {
+              "kind": "source",
+              "source_id": "synthetic-demo",
+              "locator": "fixture",
+              "observed_at": "2026-09-29T12:00:00Z"
+            }
+          ]
+        },
+        "max_user_mass": {
+          "status": "known",
+          "value": {
+            "kind": "quantity",
+            "value": "120",
+            "unit": "kg"
+          },
+          "evidence": [
+            {
+              "kind": "source",
+              "source_id": "synthetic-demo",
+              "locator": "fixture",
+              "observed_at": "2026-09-29T12:00:00Z"
+            }
+          ]
+        },
+        "foldable": {
+          "status": "known",
+          "value": {
+            "kind": "boolean",
+            "value": true
+          },
+          "evidence": [
+            {
+              "kind": "source",
+              "source_id": "synthetic-demo",
+              "locator": "fixture",
+              "observed_at": "2026-09-29T12:00:00Z"
+            }
+          ]
+        }
+      },
+      "price": {
+        "status": "known",
+        "value": {
+          "kind": "money",
+          "value": {
+            "currency": "RUB",
+            "minor": 12000000
+          }
+        },
+        "evidence": [
+          {
+            "kind": "source",
+            "source_id": "synthetic-demo",
+            "locator": "fixture",
+            "observed_at": "2026-09-29T12:00:00Z"
+          }
+        ]
+      },
+      "price_kind": "exact",
+      "delivery": {
+        "mode": "included",
+        "charge": {
+          "status": "known",
+          "value": {
+            "kind": "money",
+            "value": {
+              "currency": "RUB",
+              "minor": 0
+            }
+          },
+          "evidence": [
+            {
+              "kind": "source",
+              "source_id": "synthetic-demo",
+              "locator": "fixture",
+              "observed_at": "2026-09-29T12:00:00Z"
+            }
+          ]
+        },
+        "terms": {
+          "status": "known",
+          "value": {
+            "kind": "text",
+            "value": "Синтетический пример: доставка включена"
+          },
+          "evidence": [
+            {
+              "kind": "source",
+              "source_id": "synthetic-demo",
+              "locator": "fixture",
+              "observed_at": "2026-09-29T12:00:00Z"
+            }
+          ]
+        }
+      },
+      "accepts_certificate": {
+        "status": "known",
+        "value": {
+          "kind": "boolean",
+          "value": true
+        },
+        "evidence": [
+          {
+            "kind": "source",
+            "source_id": "synthetic-demo",
+            "locator": "fixture",
+            "observed_at": "2026-09-29T12:00:00Z"
+          }
+        ]
+      },
+      "has_fund_contract": {
+        "status": "known",
+        "value": {
+          "kind": "boolean",
+          "value": true
+        },
+        "evidence": [
+          {
+            "kind": "source",
+            "source_id": "synthetic-demo",
+            "locator": "fixture",
+            "observed_at": "2026-09-29T12:00:00Z"
+          }
+        ]
+      },
+      "availability": {
+        "status": "known",
+        "value": {
+          "kind": "code",
+          "value": "in_stock"
+        },
+        "evidence": [
+          {
+            "kind": "source",
+            "source_id": "synthetic-demo",
+            "locator": "fixture",
+            "observed_at": "2026-09-29T12:00:00Z"
+          }
+        ]
+      },
+      "source_ids": [
+        "synthetic-demo"
+      ]
+    },
+    {
+      "snapshot_id": "00000000-0000-0000-0000-000000000102",
+      "offer_id": "00000000-0000-0000-0001-000000000102",
+      "supplier_id": "fictional-a",
+      "seller_sku": "DEMO-SKU-2",
+      "variant": {
+        "variant_id": "00000000-0000-0000-0002-000000000102",
+        "category_id": "manual_wheelchair",
+        "manufacturer": "Вымышленный учебный производитель",
+        "model": "Учебная модель 2",
+        "modification": "Синтетическая",
+        "configuration": "Только учебная комплектация 2"
+      },
+      "profile_ref": {
+        "id": "manual-wheelchair-demo",
+        "version": "1.0.0"
+      },
+      "data_kind": "synthetic",
+      "observed_at": "2026-09-29T12:00:00Z",
+      "review": {
+        "status": "draft"
+      },
+      "attributes": {
+        "seat_width": {
+          "status": "known",
+          "value": {
+            "kind": "quantity",
+            "value": "460",
+            "unit": "mm"
+          },
+          "evidence": [
+            {
+              "kind": "source",
+              "source_id": "synthetic-demo",
+              "locator": "fixture",
+              "observed_at": "2026-09-29T12:00:00Z"
+            }
+          ]
+        },
+        "max_user_mass": {
+          "status": "known",
+          "value": {
+            "kind": "quantity",
+            "value": "120",
+            "unit": "kg"
+          },
+          "evidence": [
+            {
+              "kind": "source",
+              "source_id": "synthetic-demo",
+              "locator": "fixture",
+              "observed_at": "2026-09-29T12:00:00Z"
+            }
+          ]
+        },
+        "foldable": {
+          "status": "known",
+          "value": {
+            "kind": "boolean",
+            "value": true
+          },
+          "evidence": [
+            {
+              "kind": "source",
+              "source_id": "synthetic-demo",
+              "locator": "fixture",
+              "observed_at": "2026-09-29T12:00:00Z"
+            }
+          ]
+        }
+      },
+      "price": {
+        "status": "known",
+        "value": {
+          "kind": "money",
+          "value": {
+            "currency": "RUB",
+            "minor": 10000000
+          }
+        },
+        "evidence": [
+          {
+            "kind": "source",
+            "source_id": "synthetic-demo",
+            "locator": "fixture",
+            "observed_at": "2026-09-29T12:00:00Z"
+          }
+        ]
+      },
+      "price_kind": "exact",
+      "delivery": {
+        "mode": "included",
+        "charge": {
+          "status": "known",
+          "value": {
+            "kind": "money",
+            "value": {
+              "currency": "RUB",
+              "minor": 0
+            }
+          },
+          "evidence": [
+            {
+              "kind": "source",
+              "source_id": "synthetic-demo",
+              "locator": "fixture",
+              "observed_at": "2026-09-29T12:00:00Z"
+            }
+          ]
+        },
+        "terms": {
+          "status": "known",
+          "value": {
+            "kind": "text",
+            "value": "Синтетический пример: доставка включена"
+          },
+          "evidence": [
+            {
+              "kind": "source",
+              "source_id": "synthetic-demo",
+              "locator": "fixture",
+              "observed_at": "2026-09-29T12:00:00Z"
+            }
+          ]
+        }
+      },
+      "accepts_certificate": {
+        "status": "known",
+        "value": {
+          "kind": "boolean",
+          "value": true
+        },
+        "evidence": [
+          {
+            "kind": "source",
+            "source_id": "synthetic-demo",
+            "locator": "fixture",
+            "observed_at": "2026-09-29T12:00:00Z"
+          }
+        ]
+      },
+      "has_fund_contract": {
+        "status": "known",
+        "value": {
+          "kind": "boolean",
+          "value": true
+        },
+        "evidence": [
+          {
+            "kind": "source",
+            "source_id": "synthetic-demo",
+            "locator": "fixture",
+            "observed_at": "2026-09-29T12:00:00Z"
+          }
+        ]
+      },
+      "availability": {
+        "status": "known",
+        "value": {
+          "kind": "code",
+          "value": "in_stock"
+        },
+        "evidence": [
+          {
+            "kind": "source",
+            "source_id": "synthetic-demo",
+            "locator": "fixture",
+            "observed_at": "2026-09-29T12:00:00Z"
+          }
+        ]
+      },
+      "source_ids": [
+        "synthetic-demo"
+      ]
+    },
+    {
+      "snapshot_id": "00000000-0000-0000-0000-000000000103",
+      "offer_id": "00000000-0000-0000-0001-000000000103",
+      "supplier_id": "fictional-a",
+      "seller_sku": "DEMO-SKU-3",
+      "variant": {
+        "variant_id": "00000000-0000-0000-0002-000000000103",
+        "category_id": "manual_wheelchair",
+        "manufacturer": "Вымышленный учебный производитель",
+        "model": "Учебная модель 3",
+        "modification": "Синтетическая",
+        "configuration": "Только учебная комплектация 3"
+      },
+      "profile_ref": {
+        "id": "manual-wheelchair-demo",
+        "version": "1.0.0"
+      },
+      "data_kind": "synthetic",
+      "observed_at": "2026-09-29T12:00:00Z",
+      "review": {
+        "status": "draft"
+      },
+      "attributes": {
+        "seat_width": {
+          "status": "unknown",
+          "value": null,
+          "reason_code": "not_known",
+          "evidence": []
+        },
+        "max_user_mass": {
+          "status": "known",
+          "value": {
+            "kind": "quantity",
+            "value": "120",
+            "unit": "kg"
+          },
+          "evidence": [
+            {
+              "kind": "source",
+              "source_id": "synthetic-demo",
+              "locator": "fixture",
+              "observed_at": "2026-09-29T12:00:00Z"
+            }
+          ]
+        },
+        "foldable": {
+          "status": "known",
+          "value": {
+            "kind": "boolean",
+            "value": true
+          },
+          "evidence": [
+            {
+              "kind": "source",
+              "source_id": "synthetic-demo",
+              "locator": "fixture",
+              "observed_at": "2026-09-29T12:00:00Z"
+            }
+          ]
+        }
+      },
+      "price": {
+        "status": "known",
+        "value": {
+          "kind": "money",
+          "value": {
+            "currency": "RUB",
+            "minor": 9000000
+          }
+        },
+        "evidence": [
+          {
+            "kind": "source",
+            "source_id": "synthetic-demo",
+            "locator": "fixture",
+            "observed_at": "2026-09-29T12:00:00Z"
+          }
+        ]
+      },
+      "price_kind": "exact",
+      "delivery": {
+        "mode": "unknown",
+        "charge": {
+          "status": "unknown",
+          "value": null,
+          "reason_code": "not_known",
+          "evidence": []
+        },
+        "terms": {
+          "status": "unknown",
+          "value": null,
+          "reason_code": "not_known",
+          "evidence": []
+        }
+      },
+      "accepts_certificate": {
+        "status": "known",
+        "value": {
+          "kind": "boolean",
+          "value": true
+        },
+        "evidence": [
+          {
+            "kind": "source",
+            "source_id": "synthetic-demo",
+            "locator": "fixture",
+            "observed_at": "2026-09-29T12:00:00Z"
+          }
+        ]
+      },
+      "has_fund_contract": {
+        "status": "unknown",
+        "value": null,
+        "reason_code": "not_known",
+        "evidence": []
+      },
+      "availability": {
+        "status": "known",
+        "value": {
+          "kind": "code",
+          "value": "in_stock"
+        },
+        "evidence": [
+          {
+            "kind": "source",
+            "source_id": "synthetic-demo",
+            "locator": "fixture",
+            "observed_at": "2026-09-29T12:00:00Z"
+          }
+        ]
+      },
+      "source_ids": [
+        "synthetic-demo"
+      ]
+    },
+    {
+      "snapshot_id": "00000000-0000-0000-0000-000000000104",
+      "offer_id": "00000000-0000-0000-0001-000000000104",
+      "supplier_id": "fictional-b",
+      "seller_sku": "DEMO-SKU-4",
+      "variant": {
+        "variant_id": "00000000-0000-0000-0002-000000000104",
+        "category_id": "manual_wheelchair",
+        "manufacturer": "Вымышленный учебный производитель",
+        "model": "Учебная модель 4",
+        "modification": "Синтетическая",
+        "configuration": "Только учебная комплектация 4"
+      },
+      "profile_ref": {
+        "id": "manual-wheelchair-demo",
+        "version": "1.0.0"
+      },
+      "data_kind": "synthetic",
+      "observed_at": "2026-09-29T12:00:00Z",
+      "review": {
+        "status": "draft"
+      },
+      "attributes": {
+        "seat_width": {
+          "status": "known",
+          "value": {
+            "kind": "quantity",
+            "value": "420",
+            "unit": "mm"
+          },
+          "evidence": [
+            {
+              "kind": "source",
+              "source_id": "synthetic-demo",
+              "locator": "fixture",
+              "observed_at": "2026-09-29T12:00:00Z"
+            }
+          ]
+        },
+        "max_user_mass": {
+          "status": "known",
+          "value": {
+            "kind": "quantity",
+            "value": "120",
+            "unit": "kg"
+          },
+          "evidence": [
+            {
+              "kind": "source",
+              "source_id": "synthetic-demo",
+              "locator": "fixture",
+              "observed_at": "2026-09-29T12:00:00Z"
+            }
+          ]
+        },
+        "foldable": {
+          "status": "known",
+          "value": {
+            "kind": "boolean",
+            "value": true
+          },
+          "evidence": [
+            {
+              "kind": "source",
+              "source_id": "synthetic-demo",
+              "locator": "fixture",
+              "observed_at": "2026-09-29T12:00:00Z"
+            }
+          ]
+        }
+      },
+      "price": {
+        "status": "known",
+        "value": {
+          "kind": "money",
+          "value": {
+            "currency": "RUB",
+            "minor": 7000000
+          }
+        },
+        "evidence": [
+          {
+            "kind": "source",
+            "source_id": "synthetic-demo",
+            "locator": "fixture",
+            "observed_at": "2026-09-29T12:00:00Z"
+          }
+        ]
+      },
+      "price_kind": "from",
+      "delivery": {
+        "mode": "included",
+        "charge": {
+          "status": "known",
+          "value": {
+            "kind": "money",
+            "value": {
+              "currency": "RUB",
+              "minor": 0
+            }
+          },
+          "evidence": [
+            {
+              "kind": "source",
+              "source_id": "synthetic-demo",
+              "locator": "fixture",
+              "observed_at": "2026-09-29T12:00:00Z"
+            }
+          ]
+        },
+        "terms": {
+          "status": "known",
+          "value": {
+            "kind": "text",
+            "value": "Синтетический пример: доставка включена"
+          },
+          "evidence": [
+            {
+              "kind": "source",
+              "source_id": "synthetic-demo",
+              "locator": "fixture",
+              "observed_at": "2026-09-29T12:00:00Z"
+            }
+          ]
+        }
+      },
+      "accepts_certificate": {
+        "status": "known",
+        "value": {
+          "kind": "boolean",
+          "value": true
+        },
+        "evidence": [
+          {
+            "kind": "source",
+            "source_id": "synthetic-demo",
+            "locator": "fixture",
+            "observed_at": "2026-09-29T12:00:00Z"
+          }
+        ]
+      },
+      "has_fund_contract": {
+        "status": "known",
+        "value": {
+          "kind": "boolean",
+          "value": true
+        },
+        "evidence": [
+          {
+            "kind": "source",
+            "source_id": "synthetic-demo",
+            "locator": "fixture",
+            "observed_at": "2026-09-29T12:00:00Z"
+          }
+        ]
+      },
+      "availability": {
+        "status": "known",
+        "value": {
+          "kind": "code",
+          "value": "in_stock"
+        },
+        "evidence": [
+          {
+            "kind": "source",
+            "source_id": "synthetic-demo",
+            "locator": "fixture",
+            "observed_at": "2026-09-29T12:00:00Z"
+          }
+        ]
+      },
+      "source_ids": [
+        "synthetic-demo"
+      ]
+    },
+    {
+      "snapshot_id": "00000000-0000-0000-0000-000000000105",
+      "offer_id": "00000000-0000-0000-0001-000000000105",
+      "supplier_id": "fictional-b",
+      "seller_sku": "DEMO-SKU-5",
+      "variant": {
+        "variant_id": "00000000-0000-0000-0002-000000000105",
+        "category_id": "manual_wheelchair",
+        "manufacturer": "Вымышленный учебный производитель",
+        "model": "Учебная модель 5",
+        "modification": "Синтетическая",
+        "configuration": "Только учебная комплектация 5"
+      },
+      "profile_ref": {
+        "id": "manual-wheelchair-demo",
+        "version": "1.0.0"
+      },
+      "data_kind": "synthetic",
+      "observed_at": "2026-09-29T12:00:00Z",
+      "review": {
+        "status": "draft"
+      },
+      "attributes": {
+        "seat_width": {
+          "status": "known",
+          "value": {
+            "kind": "quantity",
+            "value": "420",
+            "unit": "mm"
+          },
+          "evidence": [
+            {
+              "kind": "source",
+              "source_id": "synthetic-demo",
+              "locator": "fixture",
+              "observed_at": "2026-09-29T12:00:00Z"
+            }
+          ]
+        },
+        "max_user_mass": {
+          "status": "known",
+          "value": {
+            "kind": "quantity",
+            "value": "120",
+            "unit": "kg"
+          },
+          "evidence": [
+            {
+              "kind": "source",
+              "source_id": "synthetic-demo",
+              "locator": "fixture",
+              "observed_at": "2026-09-29T12:00:00Z"
+            }
+          ]
+        },
+        "foldable": {
+          "status": "known",
+          "value": {
+            "kind": "boolean",
+            "value": true
+          },
+          "evidence": [
+            {
+              "kind": "source",
+              "source_id": "synthetic-demo",
+              "locator": "fixture",
+              "observed_at": "2026-09-29T12:00:00Z"
+            }
+          ]
+        }
+      },
+      "price": {
+        "status": "known",
+        "value": {
+          "kind": "money",
+          "value": {
+            "currency": "RUB",
+            "minor": 13000000
+          }
+        },
+        "evidence": [
+          {
+            "kind": "source",
+            "source_id": "synthetic-demo",
+            "locator": "fixture",
+            "observed_at": "2026-09-29T12:00:00Z"
+          }
+        ]
+      },
+      "price_kind": "exact",
+      "delivery": {
+        "mode": "separate",
+        "charge": {
+          "status": "known",
+          "value": {
+            "kind": "money",
+            "value": {
+              "currency": "RUB",
+              "minor": 500000
+            }
+          },
+          "evidence": [
+            {
+              "kind": "source",
+              "source_id": "synthetic-demo",
+              "locator": "fixture",
+              "observed_at": "2026-09-29T12:00:00Z"
+            }
+          ]
+        },
+        "terms": {
+          "status": "known",
+          "value": {
+            "kind": "text",
+            "value": "Синтетический пример: доставку оплачивает покупатель"
+          },
+          "evidence": [
+            {
+              "kind": "source",
+              "source_id": "synthetic-demo",
+              "locator": "fixture",
+              "observed_at": "2026-09-29T12:00:00Z"
+            }
+          ]
+        }
+      },
+      "accepts_certificate": {
+        "status": "known",
+        "value": {
+          "kind": "boolean",
+          "value": false
+        },
+        "evidence": [
+          {
+            "kind": "source",
+            "source_id": "synthetic-demo",
+            "locator": "fixture",
+            "observed_at": "2026-09-29T12:00:00Z"
+          }
+        ]
+      },
+      "has_fund_contract": {
+        "status": "known",
+        "value": {
+          "kind": "boolean",
+          "value": true
+        },
+        "evidence": [
+          {
+            "kind": "source",
+            "source_id": "synthetic-demo",
+            "locator": "fixture",
+            "observed_at": "2026-09-29T12:00:00Z"
+          }
+        ]
+      },
+      "availability": {
+        "status": "known",
+        "value": {
+          "kind": "code",
+          "value": "in_stock"
+        },
+        "evidence": [
+          {
+            "kind": "source",
+            "source_id": "synthetic-demo",
+            "locator": "fixture",
+            "observed_at": "2026-09-29T12:00:00Z"
+          }
+        ]
+      },
+      "source_ids": [
+        "synthetic-demo"
+      ]
+    }
+  ]
+}

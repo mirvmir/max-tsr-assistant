@@ -1,0 +1,36 @@
+[build-system]
+requires = ["setuptools>=75"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "max-tsr-assistant"
+version = "0.1.0"
+description = "Demo-first MAX assistant for assistive equipment selection"
+requires-python = ">=3.12"
+dependencies = [
+  "pydantic==2.11.7",
+  "fastapi==0.115.14",
+  "uvicorn==0.34.3",
+  "psycopg[binary]==3.2.9",
+  "cryptography==45.0.4",
+  "httpx==0.28.1",
+  "reportlab==4.4.2",
+  "python-docx==1.2.0",
+  "jsonschema==4.24.0",
+]
+
+[project.optional-dependencies]
+test = ["pytest==8.4.1", "pgserver==0.1.4"]
+
+[project.scripts]
+tsr = "tsr.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+"tsr.application" = ["messages.ru.json"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]

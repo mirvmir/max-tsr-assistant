@@ -1,0 +1,12 @@
+{
+  "schema_version": "1.0.0",
+  "document_kind": "checklist",
+  "format": "pdf",
+  "data_kind": "synthetic",
+  "review_status": "draft",
+  "official_form": false,
+  "missing_value": "Не указано",
+  "renderer_id": "reportlab-v1",
+  "font": "assets/fonts/DejaVuSans.ttf",
+  "license": "assets/fonts/LICENSE-DejaVu.txt"
+}

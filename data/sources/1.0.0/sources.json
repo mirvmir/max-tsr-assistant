@@ -1,0 +1,22 @@
+{
+  "schema_version": "1.0.0",
+  "registry_id": "demo-sources",
+  "version": "1.0.0",
+  "data_kind": "synthetic",
+  "review": {
+    "status": "draft"
+  },
+  "sources": [
+    {
+      "source_id": "synthetic-demo",
+      "url": "https://example.invalid/synthetic-demo",
+      "title": "Искусственный учебный набор, не рыночный или правовой источник",
+      "captured_at": "2026-09-29T12:00:00Z",
+      "data_kind": "synthetic",
+      "review": {
+        "status": "draft"
+      },
+      "use_basis": "Created for this demo; no real user or market data"
+    }
+  ]
+}

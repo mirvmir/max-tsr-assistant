@@ -1,0 +1,1984 @@
+{
+  "$defs": {
+    "AttributeRule": {
+      "additionalProperties": false,
+      "properties": {
+        "field_key": {
+          "title": "Field Key",
+          "type": "string"
+        },
+        "label": {
+          "title": "Label",
+          "type": "string"
+        },
+        "value_kind": {
+          "enum": [
+            "quantity",
+            "boolean",
+            "code",
+            "text",
+            "money"
+          ],
+          "title": "Value Kind",
+          "type": "string"
+        },
+        "unit": {
+          "anyOf": [
+            {
+              "enum": [
+                "mm",
+                "kg"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Unit"
+        },
+        "operator": {
+          "default": "eq",
+          "enum": [
+            "eq",
+            "gte",
+            "lte",
+            "within_range",
+            "in_set"
+          ],
+          "title": "Operator",
+          "type": "string"
+        },
+        "required_for_complete_comparison": {
+          "default": false,
+          "title": "Required For Complete Comparison",
+          "type": "boolean"
+        },
+        "allowed_codes": {
+          "default": [],
+          "items": {
+            "type": "string"
+          },
+          "title": "Allowed Codes",
+          "type": "array"
+        },
+        "tolerance": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Tolerance"
+        },
+        "help_text": {
+          "default": "",
+          "title": "Help Text",
+          "type": "string"
+        },
+        "source_ids": {
+          "default": [],
+          "items": {
+            "type": "string"
+          },
+          "title": "Source Ids",
+          "type": "array"
+        }
+      },
+      "required": [
+        "field_key",
+        "label",
+        "value_kind"
+      ],
+      "title": "AttributeRule",
+      "type": "object"
+    },
+    "BooleanValue": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "boolean",
+          "default": "boolean",
+          "title": "Kind",
+          "type": "string"
+        },
+        "value": {
+          "title": "Value",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "value"
+      ],
+      "title": "BooleanValue",
+      "type": "object"
+    },
+    "CalculatedEvidence": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "calculated",
+          "default": "calculated",
+          "title": "Kind",
+          "type": "string"
+        },
+        "algorithm": {
+          "$ref": "#/$defs/VersionRef"
+        },
+        "input_refs": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Input Refs",
+          "type": "array"
+        }
+      },
+      "required": [
+        "algorithm",
+        "input_refs"
+      ],
+      "title": "CalculatedEvidence",
+      "type": "object"
+    },
+    "CatalogPack": {
+      "additionalProperties": false,
+      "properties": {
+        "schema_version": {
+          "default": "1.0.0",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "catalog_id": {
+          "title": "Catalog Id",
+          "type": "string"
+        },
+        "version": {
+          "title": "Version",
+          "type": "string"
+        },
+        "data_kind": {
+          "enum": [
+            "synthetic",
+            "public_snapshot"
+          ],
+          "title": "Data Kind",
+          "type": "string"
+        },
+        "review": {
+          "$ref": "#/$defs/Review"
+        },
+        "suppliers": {
+          "items": {
+            "$ref": "#/$defs/Supplier"
+          },
+          "title": "Suppliers",
+          "type": "array"
+        },
+        "offers": {
+          "items": {
+            "$ref": "#/$defs/OfferSnapshot"
+          },
+          "title": "Offers",
+          "type": "array"
+        }
+      },
+      "required": [
+        "catalog_id",
+        "version",
+        "data_kind",
+        "review",
+        "suppliers",
+        "offers"
+      ],
+      "title": "CatalogPack",
+      "type": "object"
+    },
+    "CategoryProfile": {
+      "additionalProperties": false,
+      "properties": {
+        "schema_version": {
+          "default": "1.0.0",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "profile_id": {
+          "title": "Profile Id",
+          "type": "string"
+        },
+        "version": {
+          "pattern": "^\\d+\\.\\d+\\.\\d+$",
+          "title": "Version",
+          "type": "string"
+        },
+        "category_id": {
+          "title": "Category Id",
+          "type": "string"
+        },
+        "data_kind": {
+          "enum": [
+            "synthetic",
+            "public_snapshot"
+          ],
+          "title": "Data Kind",
+          "type": "string"
+        },
+        "review": {
+          "$ref": "#/$defs/Review"
+        },
+        "fields": {
+          "items": {
+            "$ref": "#/$defs/AttributeRule"
+          },
+          "title": "Fields",
+          "type": "array"
+        }
+      },
+      "required": [
+        "profile_id",
+        "version",
+        "category_id",
+        "data_kind",
+        "review",
+        "fields"
+      ],
+      "title": "CategoryProfile",
+      "type": "object"
+    },
+    "ChecklistItem": {
+      "additionalProperties": false,
+      "properties": {
+        "item_id": {
+          "title": "Item Id",
+          "type": "string"
+        },
+        "label": {
+          "title": "Label",
+          "type": "string"
+        },
+        "required_when": {
+          "enum": [
+            "always",
+            "if_available",
+            "representative"
+          ],
+          "title": "Required When",
+          "type": "string"
+        },
+        "source_ids": {
+          "default": [],
+          "items": {
+            "type": "string"
+          },
+          "title": "Source Ids",
+          "type": "array"
+        },
+        "applicability": {
+          "default": "required",
+          "enum": [
+            "required",
+            "optional",
+            "not_applicable"
+          ],
+          "title": "Applicability",
+          "type": "string"
+        },
+        "user_status": {
+          "default": "unknown",
+          "enum": [
+            "provided",
+            "missing",
+            "unknown"
+          ],
+          "title": "User Status",
+          "type": "string"
+        }
+      },
+      "required": [
+        "item_id",
+        "label",
+        "required_when"
+      ],
+      "title": "ChecklistItem",
+      "type": "object"
+    },
+    "CodeValue": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "code",
+          "default": "code",
+          "title": "Kind",
+          "type": "string"
+        },
+        "value": {
+          "pattern": "^[A-Za-z0-9_.:-]+$",
+          "title": "Value",
+          "type": "string"
+        }
+      },
+      "required": [
+        "value"
+      ],
+      "title": "CodeValue",
+      "type": "object"
+    },
+    "Delivery": {
+      "additionalProperties": false,
+      "properties": {
+        "mode": {
+          "enum": [
+            "included",
+            "separate",
+            "unknown",
+            "conflicting"
+          ],
+          "title": "Mode",
+          "type": "string"
+        },
+        "charge": {
+          "$ref": "#/$defs/Fact_MoneyValue_"
+        },
+        "terms": {
+          "$ref": "#/$defs/Fact_TextValue_"
+        }
+      },
+      "required": [
+        "mode",
+        "charge",
+        "terms"
+      ],
+      "title": "Delivery",
+      "type": "object"
+    },
+    "DemoCasePack": {
+      "additionalProperties": false,
+      "properties": {
+        "schema_version": {
+          "default": "1.0.0",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "pack_id": {
+          "title": "Pack Id",
+          "type": "string"
+        },
+        "version": {
+          "title": "Version",
+          "type": "string"
+        },
+        "data_kind": {
+          "const": "synthetic",
+          "default": "synthetic",
+          "title": "Data Kind",
+          "type": "string"
+        },
+        "review": {
+          "$ref": "#/$defs/Review"
+        },
+        "profiles": {
+          "items": {
+            "$ref": "#/$defs/DemoProfile"
+          },
+          "title": "Profiles",
+          "type": "array"
+        }
+      },
+      "required": [
+        "pack_id",
+        "version",
+        "review",
+        "profiles"
+      ],
+      "title": "DemoCasePack",
+      "type": "object"
+    },
+    "DemoProfile": {
+      "additionalProperties": false,
+      "properties": {
+        "profile_id": {
+          "title": "Profile Id",
+          "type": "string"
+        },
+        "is_synthetic": {
+          "const": true,
+          "default": true,
+          "title": "Is Synthetic",
+          "type": "boolean"
+        },
+        "category_id": {
+          "title": "Category Id",
+          "type": "string"
+        },
+        "profile_ref": {
+          "$ref": "#/$defs/VersionRef"
+        },
+        "region_code": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Region Code"
+        },
+        "role": {
+          "enum": [
+            "self",
+            "representative"
+          ],
+          "title": "Role",
+          "type": "string"
+        },
+        "prescribed": {
+          "additionalProperties": {
+            "discriminator": {
+              "mapping": {
+                "boolean": "#/$defs/BooleanValue",
+                "code": "#/$defs/CodeValue",
+                "money": "#/$defs/MoneyValue",
+                "quantity": "#/$defs/QuantityValue",
+                "range": "#/$defs/RangeValue",
+                "set": "#/$defs/SetValue",
+                "text": "#/$defs/TextValue"
+              },
+              "propertyName": "kind"
+            },
+            "oneOf": [
+              {
+                "$ref": "#/$defs/QuantityValue"
+              },
+              {
+                "$ref": "#/$defs/BooleanValue"
+              },
+              {
+                "$ref": "#/$defs/CodeValue"
+              },
+              {
+                "$ref": "#/$defs/TextValue"
+              },
+              {
+                "$ref": "#/$defs/MoneyValue"
+              },
+              {
+                "$ref": "#/$defs/RangeValue"
+              },
+              {
+                "$ref": "#/$defs/SetValue"
+              }
+            ]
+          },
+          "title": "Prescribed",
+          "type": "object"
+        },
+        "unspecified_fields": {
+          "default": [],
+          "items": {
+            "type": "string"
+          },
+          "title": "Unspecified Fields",
+          "type": "array"
+        },
+        "certificate_amount": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Money"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "certificate_applicable_declared": {
+          "default": "unknown",
+          "enum": [
+            "yes",
+            "no",
+            "unknown"
+          ],
+          "title": "Certificate Applicable Declared",
+          "type": "string"
+        },
+        "applicant_status_declared": {
+          "default": "unknown",
+          "enum": [
+            "yes",
+            "no",
+            "unknown"
+          ],
+          "title": "Applicant Status Declared",
+          "type": "string"
+        },
+        "route_answers": {
+          "additionalProperties": {
+            "enum": [
+              "yes",
+              "no",
+              "unknown"
+            ],
+            "type": "string"
+          },
+          "title": "Route Answers",
+          "type": "object"
+        },
+        "document_fields": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "title": "Document Fields",
+          "type": "object"
+        }
+      },
+      "required": [
+        "profile_id",
+        "category_id",
+        "profile_ref",
+        "role"
+      ],
+      "title": "DemoProfile",
+      "type": "object"
+    },
+    "Fact_Annotated_Union_QuantityValue__BooleanValue__CodeValue__TextValue__MoneyValue___FieldInfo_annotation_NoneType__required_True__discriminator__kind____": {
+      "additionalProperties": false,
+      "properties": {
+        "status": {
+          "enum": [
+            "known",
+            "unknown",
+            "conflicting"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "value": {
+          "anyOf": [
+            {
+              "discriminator": {
+                "mapping": {
+                  "boolean": "#/$defs/BooleanValue",
+                  "code": "#/$defs/CodeValue",
+                  "money": "#/$defs/MoneyValue",
+                  "quantity": "#/$defs/QuantityValue",
+                  "text": "#/$defs/TextValue"
+                },
+                "propertyName": "kind"
+              },
+              "oneOf": [
+                {
+                  "$ref": "#/$defs/QuantityValue"
+                },
+                {
+                  "$ref": "#/$defs/BooleanValue"
+                },
+                {
+                  "$ref": "#/$defs/CodeValue"
+                },
+                {
+                  "$ref": "#/$defs/TextValue"
+                },
+                {
+                  "$ref": "#/$defs/MoneyValue"
+                }
+              ]
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Value"
+        },
+        "evidence": {
+          "default": [],
+          "items": {
+            "discriminator": {
+              "mapping": {
+                "calculated": "#/$defs/CalculatedEvidence",
+                "source": "#/$defs/SourceEvidence",
+                "user": "#/$defs/UserEvidence"
+              },
+              "propertyName": "kind"
+            },
+            "oneOf": [
+              {
+                "$ref": "#/$defs/SourceEvidence"
+              },
+              {
+                "$ref": "#/$defs/UserEvidence"
+              },
+              {
+                "$ref": "#/$defs/CalculatedEvidence"
+              }
+            ]
+          },
+          "title": "Evidence",
+          "type": "array"
+        },
+        "reason_code": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Reason Code"
+        },
+        "alternatives": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/Fact_Annotated_Union_QuantityValue__BooleanValue__CodeValue__TextValue__MoneyValue___FieldInfo_annotation_NoneType__required_True__discriminator__kind____"
+          },
+          "title": "Alternatives",
+          "type": "array"
+        }
+      },
+      "required": [
+        "status"
+      ],
+      "title": "Fact[Annotated[Union[QuantityValue, BooleanValue, CodeValue, TextValue, MoneyValue], FieldInfo(annotation=NoneType, required=True, discriminator='kind')]]",
+      "type": "object"
+    },
+    "Fact_BooleanValue_": {
+      "additionalProperties": false,
+      "properties": {
+        "status": {
+          "enum": [
+            "known",
+            "unknown",
+            "conflicting"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "value": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/BooleanValue"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "evidence": {
+          "default": [],
+          "items": {
+            "discriminator": {
+              "mapping": {
+                "calculated": "#/$defs/CalculatedEvidence",
+                "source": "#/$defs/SourceEvidence",
+                "user": "#/$defs/UserEvidence"
+              },
+              "propertyName": "kind"
+            },
+            "oneOf": [
+              {
+                "$ref": "#/$defs/SourceEvidence"
+              },
+              {
+                "$ref": "#/$defs/UserEvidence"
+              },
+              {
+                "$ref": "#/$defs/CalculatedEvidence"
+              }
+            ]
+          },
+          "title": "Evidence",
+          "type": "array"
+        },
+        "reason_code": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Reason Code"
+        },
+        "alternatives": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/Fact_BooleanValue_"
+          },
+          "title": "Alternatives",
+          "type": "array"
+        }
+      },
+      "required": [
+        "status"
+      ],
+      "title": "Fact[BooleanValue]",
+      "type": "object"
+    },
+    "Fact_CodeValue_": {
+      "additionalProperties": false,
+      "properties": {
+        "status": {
+          "enum": [
+            "known",
+            "unknown",
+            "conflicting"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "value": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/CodeValue"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "evidence": {
+          "default": [],
+          "items": {
+            "discriminator": {
+              "mapping": {
+                "calculated": "#/$defs/CalculatedEvidence",
+                "source": "#/$defs/SourceEvidence",
+                "user": "#/$defs/UserEvidence"
+              },
+              "propertyName": "kind"
+            },
+            "oneOf": [
+              {
+                "$ref": "#/$defs/SourceEvidence"
+              },
+              {
+                "$ref": "#/$defs/UserEvidence"
+              },
+              {
+                "$ref": "#/$defs/CalculatedEvidence"
+              }
+            ]
+          },
+          "title": "Evidence",
+          "type": "array"
+        },
+        "reason_code": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Reason Code"
+        },
+        "alternatives": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/Fact_CodeValue_"
+          },
+          "title": "Alternatives",
+          "type": "array"
+        }
+      },
+      "required": [
+        "status"
+      ],
+      "title": "Fact[CodeValue]",
+      "type": "object"
+    },
+    "Fact_MoneyValue_": {
+      "additionalProperties": false,
+      "properties": {
+        "status": {
+          "enum": [
+            "known",
+            "unknown",
+            "conflicting"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "value": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/MoneyValue"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "evidence": {
+          "default": [],
+          "items": {
+            "discriminator": {
+              "mapping": {
+                "calculated": "#/$defs/CalculatedEvidence",
+                "source": "#/$defs/SourceEvidence",
+                "user": "#/$defs/UserEvidence"
+              },
+              "propertyName": "kind"
+            },
+            "oneOf": [
+              {
+                "$ref": "#/$defs/SourceEvidence"
+              },
+              {
+                "$ref": "#/$defs/UserEvidence"
+              },
+              {
+                "$ref": "#/$defs/CalculatedEvidence"
+              }
+            ]
+          },
+          "title": "Evidence",
+          "type": "array"
+        },
+        "reason_code": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Reason Code"
+        },
+        "alternatives": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/Fact_MoneyValue_"
+          },
+          "title": "Alternatives",
+          "type": "array"
+        }
+      },
+      "required": [
+        "status"
+      ],
+      "title": "Fact[MoneyValue]",
+      "type": "object"
+    },
+    "Fact_TextValue_": {
+      "additionalProperties": false,
+      "properties": {
+        "status": {
+          "enum": [
+            "known",
+            "unknown",
+            "conflicting"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "value": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/TextValue"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "evidence": {
+          "default": [],
+          "items": {
+            "discriminator": {
+              "mapping": {
+                "calculated": "#/$defs/CalculatedEvidence",
+                "source": "#/$defs/SourceEvidence",
+                "user": "#/$defs/UserEvidence"
+              },
+              "propertyName": "kind"
+            },
+            "oneOf": [
+              {
+                "$ref": "#/$defs/SourceEvidence"
+              },
+              {
+                "$ref": "#/$defs/UserEvidence"
+              },
+              {
+                "$ref": "#/$defs/CalculatedEvidence"
+              }
+            ]
+          },
+          "title": "Evidence",
+          "type": "array"
+        },
+        "reason_code": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Reason Code"
+        },
+        "alternatives": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/Fact_TextValue_"
+          },
+          "title": "Alternatives",
+          "type": "array"
+        }
+      },
+      "required": [
+        "status"
+      ],
+      "title": "Fact[TextValue]",
+      "type": "object"
+    },
+    "Money": {
+      "additionalProperties": false,
+      "properties": {
+        "currency": {
+          "const": "RUB",
+          "default": "RUB",
+          "title": "Currency",
+          "type": "string"
+        },
+        "minor": {
+          "maximum": 9000000000000000,
+          "minimum": 0,
+          "title": "Minor",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "minor"
+      ],
+      "title": "Money",
+      "type": "object"
+    },
+    "MoneyValue": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "money",
+          "default": "money",
+          "title": "Kind",
+          "type": "string"
+        },
+        "value": {
+          "$ref": "#/$defs/Money"
+        }
+      },
+      "required": [
+        "value"
+      ],
+      "title": "MoneyValue",
+      "type": "object"
+    },
+    "OfferSnapshot": {
+      "additionalProperties": false,
+      "properties": {
+        "snapshot_id": {
+          "format": "uuid",
+          "title": "Snapshot Id",
+          "type": "string"
+        },
+        "offer_id": {
+          "title": "Offer Id",
+          "type": "string"
+        },
+        "supplier_id": {
+          "title": "Supplier Id",
+          "type": "string"
+        },
+        "seller_sku": {
+          "title": "Seller Sku",
+          "type": "string"
+        },
+        "variant": {
+          "$ref": "#/$defs/Variant"
+        },
+        "profile_ref": {
+          "$ref": "#/$defs/VersionRef"
+        },
+        "data_kind": {
+          "enum": [
+            "synthetic",
+            "public_snapshot"
+          ],
+          "title": "Data Kind",
+          "type": "string"
+        },
+        "observed_at": {
+          "format": "date-time",
+          "title": "Observed At",
+          "type": "string"
+        },
+        "review": {
+          "$ref": "#/$defs/Review"
+        },
+        "attributes": {
+          "additionalProperties": {
+            "$ref": "#/$defs/Fact_Annotated_Union_QuantityValue__BooleanValue__CodeValue__TextValue__MoneyValue___FieldInfo_annotation_NoneType__required_True__discriminator__kind____"
+          },
+          "title": "Attributes",
+          "type": "object"
+        },
+        "price": {
+          "$ref": "#/$defs/Fact_MoneyValue_"
+        },
+        "price_kind": {
+          "enum": [
+            "exact",
+            "from",
+            "unknown"
+          ],
+          "title": "Price Kind",
+          "type": "string"
+        },
+        "delivery": {
+          "$ref": "#/$defs/Delivery"
+        },
+        "accepts_certificate": {
+          "$ref": "#/$defs/Fact_BooleanValue_"
+        },
+        "has_fund_contract": {
+          "$ref": "#/$defs/Fact_BooleanValue_"
+        },
+        "availability": {
+          "$ref": "#/$defs/Fact_CodeValue_"
+        },
+        "source_ids": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Source Ids",
+          "type": "array"
+        }
+      },
+      "required": [
+        "snapshot_id",
+        "offer_id",
+        "supplier_id",
+        "seller_sku",
+        "variant",
+        "profile_ref",
+        "data_kind",
+        "observed_at",
+        "review",
+        "attributes",
+        "price",
+        "price_kind",
+        "delivery",
+        "accepts_certificate",
+        "has_fund_contract",
+        "availability",
+        "source_ids"
+      ],
+      "title": "OfferSnapshot",
+      "type": "object"
+    },
+    "QuantityValue": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "quantity",
+          "default": "quantity",
+          "title": "Kind",
+          "type": "string"
+        },
+        "value": {
+          "title": "Value",
+          "type": "string"
+        },
+        "unit": {
+          "enum": [
+            "mm",
+            "kg"
+          ],
+          "title": "Unit",
+          "type": "string"
+        }
+      },
+      "required": [
+        "value",
+        "unit"
+      ],
+      "title": "QuantityValue",
+      "type": "object"
+    },
+    "RangeValue": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "range",
+          "default": "range",
+          "title": "Kind",
+          "type": "string"
+        },
+        "minimum": {
+          "title": "Minimum",
+          "type": "string"
+        },
+        "maximum": {
+          "title": "Maximum",
+          "type": "string"
+        },
+        "unit": {
+          "enum": [
+            "mm",
+            "kg"
+          ],
+          "title": "Unit",
+          "type": "string"
+        }
+      },
+      "required": [
+        "minimum",
+        "maximum",
+        "unit"
+      ],
+      "title": "RangeValue",
+      "type": "object"
+    },
+    "ReleaseFile": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "title": "Kind",
+          "type": "string"
+        },
+        "path": {
+          "title": "Path",
+          "type": "string"
+        },
+        "sha256": {
+          "title": "Sha256",
+          "type": "string"
+        },
+        "ref": {
+          "$ref": "#/$defs/VersionRef"
+        }
+      },
+      "required": [
+        "kind",
+        "path",
+        "sha256",
+        "ref"
+      ],
+      "title": "ReleaseFile",
+      "type": "object"
+    },
+    "ReleasePackManifest": {
+      "additionalProperties": false,
+      "properties": {
+        "schema_version": {
+          "default": "1.0.0",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "release_id": {
+          "title": "Release Id",
+          "type": "string"
+        },
+        "version": {
+          "title": "Version",
+          "type": "string"
+        },
+        "data_kind": {
+          "enum": [
+            "synthetic",
+            "public_snapshot"
+          ],
+          "title": "Data Kind",
+          "type": "string"
+        },
+        "review": {
+          "$ref": "#/$defs/Review"
+        },
+        "files": {
+          "items": {
+            "$ref": "#/$defs/ReleaseFile"
+          },
+          "title": "Files",
+          "type": "array"
+        }
+      },
+      "required": [
+        "release_id",
+        "version",
+        "data_kind",
+        "review",
+        "files"
+      ],
+      "title": "ReleasePackManifest",
+      "type": "object"
+    },
+    "Review": {
+      "additionalProperties": false,
+      "properties": {
+        "status": {
+          "default": "draft",
+          "enum": [
+            "draft",
+            "reviewed"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "reviewer_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Reviewer Id"
+        },
+        "reviewed_at": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Reviewed At"
+        },
+        "review_due_at": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Review Due At"
+        }
+      },
+      "title": "Review",
+      "type": "object"
+    },
+    "RouteCondition": {
+      "additionalProperties": false,
+      "properties": {
+        "condition_id": {
+          "title": "Condition Id",
+          "type": "string"
+        },
+        "handler_id": {
+          "title": "Handler Id",
+          "type": "string"
+        },
+        "required": {
+          "default": true,
+          "title": "Required",
+          "type": "boolean"
+        },
+        "source_ids": {
+          "default": [],
+          "items": {
+            "type": "string"
+          },
+          "title": "Source Ids",
+          "type": "array"
+        },
+        "label": {
+          "default": "",
+          "title": "Label",
+          "type": "string"
+        }
+      },
+      "required": [
+        "condition_id",
+        "handler_id"
+      ],
+      "title": "RouteCondition",
+      "type": "object"
+    },
+    "RoutePack": {
+      "additionalProperties": false,
+      "properties": {
+        "schema_version": {
+          "default": "1.0.0",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "route_id": {
+          "title": "Route Id",
+          "type": "string"
+        },
+        "version": {
+          "title": "Version",
+          "type": "string"
+        },
+        "region_code": {
+          "title": "Region Code",
+          "type": "string"
+        },
+        "category_id": {
+          "title": "Category Id",
+          "type": "string"
+        },
+        "data_kind": {
+          "enum": [
+            "synthetic",
+            "public_snapshot"
+          ],
+          "title": "Data Kind",
+          "type": "string"
+        },
+        "review": {
+          "$ref": "#/$defs/Review"
+        },
+        "conditions": {
+          "items": {
+            "$ref": "#/$defs/RouteCondition"
+          },
+          "title": "Conditions",
+          "type": "array"
+        },
+        "checklist": {
+          "items": {
+            "$ref": "#/$defs/ChecklistItem"
+          },
+          "title": "Checklist",
+          "type": "array"
+        },
+        "addressee": {
+          "$ref": "#/$defs/Fact_TextValue_"
+        },
+        "next_steps": {
+          "default": [],
+          "items": {
+            "type": "string"
+          },
+          "title": "Next Steps",
+          "type": "array"
+        },
+        "source_ids": {
+          "default": [],
+          "items": {
+            "type": "string"
+          },
+          "title": "Source Ids",
+          "type": "array"
+        }
+      },
+      "required": [
+        "route_id",
+        "version",
+        "region_code",
+        "category_id",
+        "data_kind",
+        "review",
+        "conditions",
+        "checklist",
+        "addressee"
+      ],
+      "title": "RoutePack",
+      "type": "object"
+    },
+    "SetValue": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "set",
+          "default": "set",
+          "title": "Kind",
+          "type": "string"
+        },
+        "values": {
+          "items": {
+            "discriminator": {
+              "mapping": {
+                "boolean": "#/$defs/BooleanValue",
+                "code": "#/$defs/CodeValue",
+                "money": "#/$defs/MoneyValue",
+                "quantity": "#/$defs/QuantityValue",
+                "text": "#/$defs/TextValue"
+              },
+              "propertyName": "kind"
+            },
+            "oneOf": [
+              {
+                "$ref": "#/$defs/QuantityValue"
+              },
+              {
+                "$ref": "#/$defs/BooleanValue"
+              },
+              {
+                "$ref": "#/$defs/CodeValue"
+              },
+              {
+                "$ref": "#/$defs/TextValue"
+              },
+              {
+                "$ref": "#/$defs/MoneyValue"
+              }
+            ]
+          },
+          "minItems": 1,
+          "title": "Values",
+          "type": "array"
+        }
+      },
+      "required": [
+        "values"
+      ],
+      "title": "SetValue",
+      "type": "object"
+    },
+    "SourceEvidence": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "source",
+          "default": "source",
+          "title": "Kind",
+          "type": "string"
+        },
+        "source_id": {
+          "title": "Source Id",
+          "type": "string"
+        },
+        "locator": {
+          "title": "Locator",
+          "type": "string"
+        },
+        "observed_at": {
+          "format": "date-time",
+          "title": "Observed At",
+          "type": "string"
+        }
+      },
+      "required": [
+        "source_id",
+        "locator",
+        "observed_at"
+      ],
+      "title": "SourceEvidence",
+      "type": "object"
+    },
+    "SourceRecord": {
+      "additionalProperties": false,
+      "properties": {
+        "source_id": {
+          "title": "Source Id",
+          "type": "string"
+        },
+        "title": {
+          "title": "Title",
+          "type": "string"
+        },
+        "url": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Url"
+        },
+        "locator": {
+          "default": "",
+          "title": "Locator",
+          "type": "string"
+        },
+        "observed_at": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Observed At"
+        },
+        "use_basis": {
+          "default": "synthetic",
+          "title": "Use Basis",
+          "type": "string"
+        },
+        "data_kind": {
+          "default": "synthetic",
+          "enum": [
+            "synthetic",
+            "public_snapshot"
+          ],
+          "title": "Data Kind",
+          "type": "string"
+        },
+        "review": {
+          "$ref": "#/$defs/Review"
+        },
+        "captured_at": {
+          "anyOf": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Captured At"
+        },
+        "sha256": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Sha256"
+        }
+      },
+      "required": [
+        "source_id",
+        "title"
+      ],
+      "title": "SourceRecord",
+      "type": "object"
+    },
+    "SourcesRegistry": {
+      "additionalProperties": false,
+      "properties": {
+        "schema_version": {
+          "default": "1.0.0",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "registry_id": {
+          "title": "Registry Id",
+          "type": "string"
+        },
+        "version": {
+          "title": "Version",
+          "type": "string"
+        },
+        "data_kind": {
+          "enum": [
+            "synthetic",
+            "public_snapshot"
+          ],
+          "title": "Data Kind",
+          "type": "string"
+        },
+        "review": {
+          "$ref": "#/$defs/Review"
+        },
+        "sources": {
+          "items": {
+            "$ref": "#/$defs/SourceRecord"
+          },
+          "title": "Sources",
+          "type": "array"
+        }
+      },
+      "required": [
+        "registry_id",
+        "version",
+        "data_kind",
+        "review",
+        "sources"
+      ],
+      "title": "SourcesRegistry",
+      "type": "object"
+    },
+    "Supplier": {
+      "additionalProperties": false,
+      "properties": {
+        "supplier_id": {
+          "title": "Supplier Id",
+          "type": "string"
+        },
+        "display_name": {
+          "title": "Display Name",
+          "type": "string"
+        },
+        "contacts": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/Fact_TextValue_"
+          },
+          "title": "Contacts",
+          "type": "array"
+        },
+        "source_ids": {
+          "default": [],
+          "items": {
+            "type": "string"
+          },
+          "title": "Source Ids",
+          "type": "array"
+        }
+      },
+      "required": [
+        "supplier_id",
+        "display_name"
+      ],
+      "title": "Supplier",
+      "type": "object"
+    },
+    "TemplateAsset": {
+      "additionalProperties": false,
+      "properties": {
+        "format": {
+          "enum": [
+            "pdf",
+            "docx"
+          ],
+          "title": "Format",
+          "type": "string"
+        },
+        "renderer_id": {
+          "title": "Renderer Id",
+          "type": "string"
+        },
+        "path": {
+          "title": "Path",
+          "type": "string"
+        },
+        "sha256": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Sha256"
+        }
+      },
+      "required": [
+        "format",
+        "renderer_id",
+        "path"
+      ],
+      "title": "TemplateAsset",
+      "type": "object"
+    },
+    "TemplateEntry": {
+      "additionalProperties": false,
+      "properties": {
+        "template_id": {
+          "title": "Template Id",
+          "type": "string"
+        },
+        "version": {
+          "title": "Version",
+          "type": "string"
+        },
+        "document_kind": {
+          "enum": [
+            "purchase_card",
+            "application",
+            "product_card",
+            "checklist"
+          ],
+          "title": "Document Kind",
+          "type": "string"
+        },
+        "assets": {
+          "items": {
+            "$ref": "#/$defs/TemplateAsset"
+          },
+          "title": "Assets",
+          "type": "array"
+        }
+      },
+      "required": [
+        "template_id",
+        "version",
+        "document_kind",
+        "assets"
+      ],
+      "title": "TemplateEntry",
+      "type": "object"
+    },
+    "TemplateRegistry": {
+      "additionalProperties": false,
+      "properties": {
+        "schema_version": {
+          "default": "1.0.0",
+          "title": "Schema Version",
+          "type": "string"
+        },
+        "registry_id": {
+          "title": "Registry Id",
+          "type": "string"
+        },
+        "version": {
+          "title": "Version",
+          "type": "string"
+        },
+        "data_kind": {
+          "enum": [
+            "synthetic",
+            "public_snapshot"
+          ],
+          "title": "Data Kind",
+          "type": "string"
+        },
+        "review": {
+          "$ref": "#/$defs/Review"
+        },
+        "templates": {
+          "items": {
+            "$ref": "#/$defs/TemplateEntry"
+          },
+          "title": "Templates",
+          "type": "array"
+        }
+      },
+      "required": [
+        "registry_id",
+        "version",
+        "data_kind",
+        "review",
+        "templates"
+      ],
+      "title": "TemplateRegistry",
+      "type": "object"
+    },
+    "TextValue": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "text",
+          "default": "text",
+          "title": "Kind",
+          "type": "string"
+        },
+        "value": {
+          "title": "Value",
+          "type": "string"
+        }
+      },
+      "required": [
+        "value"
+      ],
+      "title": "TextValue",
+      "type": "object"
+    },
+    "UserEvidence": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "const": "user",
+          "default": "user",
+          "title": "Kind",
+          "type": "string"
+        },
+        "input_revision_id": {
+          "format": "uuid",
+          "title": "Input Revision Id",
+          "type": "string"
+        },
+        "field_key": {
+          "title": "Field Key",
+          "type": "string"
+        },
+        "confirmed_at": {
+          "format": "date-time",
+          "title": "Confirmed At",
+          "type": "string"
+        }
+      },
+      "required": [
+        "input_revision_id",
+        "field_key",
+        "confirmed_at"
+      ],
+      "title": "UserEvidence",
+      "type": "object"
+    },
+    "Variant": {
+      "additionalProperties": false,
+      "properties": {
+        "variant_id": {
+          "title": "Variant Id",
+          "type": "string"
+        },
+        "category_id": {
+          "title": "Category Id",
+          "type": "string"
+        },
+        "manufacturer": {
+          "title": "Manufacturer",
+          "type": "string"
+        },
+        "model": {
+          "title": "Model",
+          "type": "string"
+        },
+        "modification": {
+          "title": "Modification",
+          "type": "string"
+        },
+        "configuration": {
+          "title": "Configuration",
+          "type": "string"
+        }
+      },
+      "required": [
+        "variant_id",
+        "category_id",
+        "manufacturer",
+        "model",
+        "modification",
+        "configuration"
+      ],
+      "title": "Variant",
+      "type": "object"
+    },
+    "VersionRef": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "pattern": "^[A-Za-z0-9_.:/-]+$",
+          "title": "Id",
+          "type": "string"
+        },
+        "version": {
+          "pattern": "^\\d+\\.\\d+\\.\\d+$",
+          "title": "Version",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "version"
+      ],
+      "title": "VersionRef",
+      "type": "object"
+    },
+    "GoldenCasePack": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema_version",
+        "pack_id",
+        "version",
+        "data_kind",
+        "review",
+        "cases"
+      ],
+      "properties": {
+        "schema_version": {
+          "const": "1.0.0"
+        },
+        "pack_id": {
+          "type": "string"
+        },
+        "version": {
+          "type": "string"
+        },
+        "data_kind": {
+          "const": "synthetic"
+        },
+        "review": {
+          "$ref": "#/$defs/Review"
+        },
+        "cases": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": [
+              "scenario",
+              "profile_ref",
+              "snapshot_id",
+              "expected"
+            ],
+            "properties": {
+              "scenario": {
+                "type": "string"
+              },
+              "profile_ref": {
+                "$ref": "#/$defs/VersionRef"
+              },
+              "snapshot_id": {
+                "type": "string"
+              },
+              "route_ref": {
+                "$ref": "#/$defs/VersionRef"
+              },
+              "expected": {
+                "type": "object",
+                "minProperties": 1
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "oneOf": [
+    {
+      "$ref": "#/$defs/CategoryProfile"
+    },
+    {
+      "$ref": "#/$defs/CatalogPack"
+    },
+    {
+      "$ref": "#/$defs/RoutePack"
+    },
+    {
+      "$ref": "#/$defs/SourcesRegistry"
+    },
+    {
+      "$ref": "#/$defs/TemplateRegistry"
+    },
+    {
+      "$ref": "#/$defs/DemoCasePack"
+    },
+    {
+      "$ref": "#/$defs/ReleasePackManifest"
+    },
+    {
+      "$ref": "#/$defs/GoldenCasePack"
+    }
+  ]
+}

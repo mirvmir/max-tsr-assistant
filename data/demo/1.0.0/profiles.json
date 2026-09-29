@@ -1,0 +1,87 @@
+{
+  "schema_version": "1.0.0",
+  "pack_id": "demo-cases",
+  "version": "1.0.0",
+  "data_kind": "synthetic",
+  "review": {
+    "status": "draft"
+  },
+  "profiles": [
+    {
+      "profile_id": "demo-self",
+      "is_synthetic": true,
+      "category_id": "manual_wheelchair",
+      "profile_ref": {
+        "id": "manual-wheelchair-demo",
+        "version": "1.0.0"
+      },
+      "region_code": "ru-alt",
+      "role": "self",
+      "prescribed": {
+        "seat_width": {
+          "kind": "quantity",
+          "value": "420",
+          "unit": "mm"
+        },
+        "max_user_mass": {
+          "kind": "quantity",
+          "value": "100",
+          "unit": "kg"
+        },
+        "foldable": {
+          "kind": "boolean",
+          "value": true
+        }
+      },
+      "unspecified_fields": [],
+      "certificate_amount": {
+        "currency": "RUB",
+        "minor": 10000000
+      },
+      "certificate_applicable_declared": "yes",
+      "applicant_status_declared": "yes",
+      "route_answers": {},
+      "document_fields": {
+        "applicant_name": "Синтетический пользователь"
+      }
+    },
+    {
+      "profile_id": "demo-representative",
+      "is_synthetic": true,
+      "category_id": "manual_wheelchair",
+      "profile_ref": {
+        "id": "manual-wheelchair-demo",
+        "version": "1.0.0"
+      },
+      "region_code": "ru-alt",
+      "role": "representative",
+      "prescribed": {
+        "seat_width": {
+          "kind": "quantity",
+          "value": "420",
+          "unit": "mm"
+        },
+        "max_user_mass": {
+          "kind": "quantity",
+          "value": "100",
+          "unit": "kg"
+        },
+        "foldable": {
+          "kind": "boolean",
+          "value": true
+        }
+      },
+      "unspecified_fields": [],
+      "certificate_amount": {
+        "currency": "RUB",
+        "minor": 10000000
+      },
+      "certificate_applicable_declared": "yes",
+      "applicant_status_declared": "yes",
+      "route_answers": {},
+      "document_fields": {
+        "applicant_name": "Синтетический пользователь"
+      }
+    }
+  ]
+}

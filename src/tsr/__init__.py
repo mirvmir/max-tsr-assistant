@@ -1,0 +1,1 @@
+"""MAX assistive equipment assistant."""

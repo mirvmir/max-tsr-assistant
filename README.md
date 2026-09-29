@@ -1,3 +1,38 @@
 # max-tsr-assistant
 
-Помощник MAX для подбора ТСР. Первая synthetic demo-реализация разрабатывается в ветке `feat/first-mvp`; требования и проверка результата будут приложены к pull request.
+Первая реализация диалогового помощника MAX для подбора ТСР. Две ветки: карточка покупки и предварительная проверка маршрута с пакетом черновиков. Данные, поставщики, цены и региональные условия сейчас **синтетические**; каждый результат помечен DEMO. Это проверяемая основа, а не готовый пилот с реальными рекомендациями.
+
+Python-монолит, PostgreSQL 16, одна кодовая база и образ для HTTP и worker. PostgreSQL хранит inbox/jobs/outbox, подтверждённый ввод и неизменяемые manifest. Один дочерний процесс `spawn` готовит документы; файлы и чувствительные записи хранятся зашифрованно. UI — русский диалог MAX с подтверждением значений, выбором роли, возвратом, исправлением и материалами.
+
+## Первый запуск
+
+Нужны Git, Python 3.12+ для создания локальных секретов и Docker Compose v2. Образ использует Python 3.13. Из корня репозитория:
+
+```bash
+cp .env.example .env
+PYTHONPATH=src python -c "from pathlib import Path; from tsr.bootstrap import generate_demo_secrets; generate_demo_secrets(Path('secrets'))"
+docker compose up --build -d
+docker compose exec app tsr demo --scenario purchase --download-dir /tmp/tsr-purchase --show-dialog
+mkdir -p var/purchase
+docker compose cp app:/tmp/tsr-purchase/. var/purchase/
+```
+
+Ожидается `ready`, один PDF и разница **20 000 ₽** (`2 000 000` копеек). Команда проводит синтетического пользователя через тот же application, очереди, worker, рендер и авторизованную выдачу. Локальный transport имитирует MAX; токен бота для этого сценария не нужен. HTTP app и worker могут оставаться запущенными: эмулятор использует отдельную область очереди.
+
+[Подробная проверка первого сценария и второй ветки](docs/FIRST_SCENARIO.md). [Запуск, секреты и эксплуатация](docs/RUNBOOK.md). [Что реализовано и что осталось](docs/IMPLEMENTATION_STATUS.md). [API MAX и TLS](docs/integrations/MAX.md).
+
+## Проверки
+
+```bash
+python -m venv .venv
+.venv/bin/python -m pip install -r requirements.lock
+.venv/bin/python -m pip install --no-build-isolation --no-deps -e .
+.venv/bin/python -m pip install pytest==8.4.1
+TSR_TEST_DATABASE_URL=postgresql://tsr:tsr-local-demo@127.0.0.1:5432/tsr .venv/bin/python -m pytest -q
+```
+
+Здесь нужен отдельный локальный PostgreSQL с правом создавать тестовые схемы. Compose не публикует порт БД; для него можно выполнять проверки внутри контейнера с тестовыми зависимостями. Без `TSR_TEST_DATABASE_URL` интеграционные тесты пропускаются — такой запуск не подтверждает сквозной сценарий. Тесты создают и удаляют только свои схемы со случайными именами.
+
+Точечные проверки покрывают деньги и неизвестности, старые/чужие кнопки, preview/manifest hash, отзыв данных, owner/epoch/fence, неопределённую доставку, таймаут рендера, выдачу файлов и обе ветки. Это не нагрузочный тест и не проверка живых клиентов MAX.
+
+Исходные требования и контракты сохранены в [docs/specs](docs/specs). Их первоначальные чекбоксы оставлены без изменений; актуальный статус реализации описан отдельно.

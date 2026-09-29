@@ -1,0 +1,44 @@
+{
+  "schema_version": "1.0.0",
+  "pack_id": "demo-golden",
+  "version": "1.0.0",
+  "data_kind": "synthetic",
+  "review": {
+    "status": "draft"
+  },
+  "cases": [
+    {
+      "scenario": "first_purchase",
+      "profile_ref": {
+        "id": "manual-wheelchair-demo",
+        "version": "1.0.0"
+      },
+      "snapshot_id": "00000000-0000-0000-0000-000000000101",
+      "route_ref": {
+        "id": "ru-alt-demo-fund-topup",
+        "version": "1.0.0"
+      },
+      "expected": {
+        "class": "complete",
+        "coverage_minor": 10000000,
+        "gap_minor": 2000000,
+        "total_minor": 2000000,
+        "route_status": "preliminary_match"
+      }
+    },
+    {
+      "scenario": "large_total",
+      "profile_ref": {
+        "id": "manual-wheelchair-demo",
+        "version": "1.0.0"
+      },
+      "snapshot_id": "00000000-0000-0000-0000-000000000101",
+      "expected": {
+        "price_minor": 10000000000,
+        "delivery_minor": 10000000000,
+        "certificate_applicable_declared": "no",
+        "total_minor": 20000000000
+      }
+    }
+  ]
+}

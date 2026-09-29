@@ -1,0 +1,101 @@
+{
+  "schema_version": "1.0.0",
+  "release_id": "demo-release",
+  "version": "1.0.0",
+  "data_kind": "synthetic",
+  "review": {
+    "status": "draft"
+  },
+  "files": [
+    {
+      "kind": "CategoryProfile",
+      "path": "data/categories/manual_wheelchair/1.0.0/profile.json",
+      "sha256": "d6c6618c7fba48cb601fee83b0fc0bbd3b066b9d293cf4d07a486f6be9aa4542",
+      "ref": {
+        "id": "manual-wheelchair-demo",
+        "version": "1.0.0"
+      }
+    },
+    {
+      "kind": "CatalogPack",
+      "path": "data/catalog/mvp/1.0.0/catalog.json",
+      "sha256": "3354ddea5c05c56c5ea82c8c5d37499756f14e9db0cedf00f41b162b50db173f",
+      "ref": {
+        "id": "demo-catalog",
+        "version": "1.0.0"
+      }
+    },
+    {
+      "kind": "RoutePack",
+      "path": "data/routes/ru-alt/fund-topup/1.0.0/route.json",
+      "sha256": "8fa3b3189aa6f9784a91e60fd8832dcb8670ba4f256de7ff464d608a51b00b6c",
+      "ref": {
+        "id": "ru-alt-demo-fund-topup",
+        "version": "1.0.0"
+      }
+    },
+    {
+      "kind": "SourcesRegistry",
+      "path": "data/sources/1.0.0/sources.json",
+      "sha256": "b06866890920816cd475716917b138045015bf8b8a395995a44120c0568be008",
+      "ref": {
+        "id": "demo-sources",
+        "version": "1.0.0"
+      }
+    },
+    {
+      "kind": "DemoCasePack",
+      "path": "data/demo/1.0.0/profiles.json",
+      "sha256": "035a3f55e68f75e2343558b752e01024b710d7fe6e2bb3d31124211e1a113072",
+      "ref": {
+        "id": "demo-cases",
+        "version": "1.0.0"
+      }
+    },
+    {
+      "kind": "GoldenCasePack",
+      "path": "data/golden/1.0.0/cases.json",
+      "sha256": "27fcd11c8231bd066fdbd7b4dddcef0bfc0aaf04889a800337bbfdd51a76cfdb",
+      "ref": {
+        "id": "demo-golden",
+        "version": "1.0.0"
+      }
+    },
+    {
+      "kind": "TemplateRegistry",
+      "path": "templates/registry.json",
+      "sha256": "ad12c9c756a82d4553c6b54465cc8291d5afd8c73a930be224d3fbc19df91b41",
+      "ref": {
+        "id": "demo-templates",
+        "version": "1.0.0"
+      }
+    },
+    {
+      "kind": "asset",
+      "path": "assets/fonts/DejaVuSans.ttf",
+      "sha256": "ae7b7855e115a5966d8b1b3f80f254ccc117ec86f9965e202ee2940453837280",
+      "ref": {
+        "id": "font-DejaVuSans.ttf",
+        "version": "1.0.0"
+      }
+    },
+    {
+      "kind": "asset",
+      "path": "assets/fonts/DejaVuSans-Bold.ttf",
+      "sha256": "5c1247acef7f2b8522a31742c76d6adcb5569bacc0be7ceaa4dc39dd252ce895",
+      "ref": {
+        "id": "font-DejaVuSans-Bold.ttf",
+        "version": "1.0.0"
+      }
+    },
+    {
+      "kind": "asset",
+      "path": "assets/fonts/LICENSE-DejaVu.txt",
+      "sha256": "63d3ba759d12804c5b31a9d5940d855c1820d1f5999e6b0872eb1c7ff045fbc9",
+      "ref": {
+        "id": "font-LICENSE-DejaVu.txt",
+        "version": "1.0.0"
+      }
+    }
+  ]
+}

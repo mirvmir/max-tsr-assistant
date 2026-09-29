@@ -1,0 +1,62 @@
+name: max-tsr-assistant
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: tsr
+      POSTGRES_PASSWORD: tsr-local-demo
+      POSTGRES_DB: tsr
+    volumes:
+      - postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U tsr -d tsr"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+    restart: unless-stopped
+  app:
+    build: .
+    image: max-tsr-assistant:0.1.0
+    env_file: .env
+    ports:
+      - "127.0.0.1:8080:8080"
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - private:/var/lib/tsr/blobs
+    secrets: &app_secrets
+      - encryption_key
+      - identity_hmac_key
+      - max_bot_token
+      - webhook_secret
+      - health_token
+    command: ["tsr", "serve"]
+    restart: unless-stopped
+  worker:
+    build: .
+    image: max-tsr-assistant:0.1.0
+    env_file: .env
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - private:/var/lib/tsr/blobs
+    secrets: *app_secrets
+    command: ["tsr", "worker"]
+    stop_grace_period: 30s
+    restart: unless-stopped
+volumes:
+  postgres:
+  private:
+secrets:
+  encryption_key:
+    file: ./secrets/encryption_key
+  identity_hmac_key:
+    file: ./secrets/identity_hmac_key
+  max_bot_token:
+    file: ./secrets/max_bot_token
+  webhook_secret:
+    file: ./secrets/webhook_secret
+  health_token:
+    file: ./secrets/health_token

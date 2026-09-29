@@ -1,0 +1,54 @@
+{
+  "schema_version": "1.0.0",
+  "profile_id": "manual-wheelchair-demo",
+  "version": "1.0.0",
+  "category_id": "manual_wheelchair",
+  "data_kind": "synthetic",
+  "review": {
+    "status": "draft"
+  },
+  "fields": [
+    {
+      "field_key": "seat_width",
+      "label": "Ширина сиденья (учебный пример)",
+      "value_kind": "quantity",
+      "unit": "mm",
+      "operator": "eq",
+      "required_for_complete_comparison": true,
+      "allowed_codes": [],
+      "tolerance": null,
+      "help_text": "Перенесите значение назначения. Учебное правило, не медицинское заключение.",
+      "source_ids": [
+        "synthetic-demo"
+      ]
+    },
+    {
+      "field_key": "max_user_mass",
+      "label": "Допустимая масса пользователя (учебный пример)",
+      "value_kind": "quantity",
+      "unit": "kg",
+      "operator": "gte",
+      "required_for_complete_comparison": true,
+      "allowed_codes": [],
+      "tolerance": null,
+      "help_text": "Учебная проверка нижней границы, правило не утверждено экспертом.",
+      "source_ids": [
+        "synthetic-demo"
+      ]
+    },
+    {
+      "field_key": "foldable",
+      "label": "Складная конструкция (учебный пример)",
+      "value_kind": "boolean",
+      "unit": null,
+      "operator": "eq",
+      "required_for_complete_comparison": false,
+      "allowed_codes": [],
+      "tolerance": null,
+      "help_text": "Укажите только сведения из назначения.",
+      "source_ids": [
+        "synthetic-demo"
+      ]
+    }
+  ]
+}

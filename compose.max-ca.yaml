@@ -1,0 +1,18 @@
+# Optional operator-provisioned trusted CA bundle; TLS verification stays on.
+services:
+  app:
+    environment:
+      TSR_MAX_CA_BUNDLE: /run/max-ca/ca-bundle.pem
+    volumes:
+      - type: bind
+        source: ${TSR_MAX_CA_BUNDLE_HOST:?Set TSR_MAX_CA_BUNDLE_HOST to the verified complete PEM CA bundle}
+        target: /run/max-ca/ca-bundle.pem
+        read_only: true
+  worker:
+    environment:
+      TSR_MAX_CA_BUNDLE: /run/max-ca/ca-bundle.pem
+    volumes:
+      - type: bind
+        source: ${TSR_MAX_CA_BUNDLE_HOST:?Set TSR_MAX_CA_BUNDLE_HOST to the verified complete PEM CA bundle}
+        target: /run/max-ca/ca-bundle.pem
+        read_only: true

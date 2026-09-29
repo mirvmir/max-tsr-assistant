@@ -1,0 +1,1 @@
+{"update_type":"message_created","timestamp":1790683200000,"message":{"sender":{"user_id":7001,"is_bot":false,"name":"Synthetic name discarded","username":"discarded"},"recipient":{"chat_id":8001,"chat_type":"dialog","user_id":9999},"timestamp":1790683200000,"body":{"mid":"mid.synthetic-one","text":"45","attachments":[{"type":"contact","payload":{"name":"discarded"}}]}}}

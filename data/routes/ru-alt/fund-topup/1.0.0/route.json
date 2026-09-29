@@ -1,0 +1,97 @@
+{
+  "schema_version": "1.0.0",
+  "route_id": "ru-alt-demo-fund-topup",
+  "version": "1.0.0",
+  "region_code": "ru-alt",
+  "category_id": "manual_wheelchair",
+  "data_kind": "synthetic",
+  "review": {
+    "status": "draft"
+  },
+  "conditions": [
+    {
+      "condition_id": "applicant",
+      "handler_id": "applicant_status_declared",
+      "required": true,
+      "source_ids": [
+        "synthetic-demo"
+      ],
+      "label": "Учебное условие"
+    },
+    {
+      "condition_id": "certificate",
+      "handler_id": "certificate_applicable_declared",
+      "required": true,
+      "source_ids": [
+        "synthetic-demo"
+      ],
+      "label": "Учебное условие"
+    },
+    {
+      "condition_id": "certificate_acceptance",
+      "handler_id": "supplier_accepts_certificate",
+      "required": true,
+      "source_ids": [
+        "synthetic-demo"
+      ],
+      "label": "Учебное условие"
+    },
+    {
+      "condition_id": "fund_contract",
+      "handler_id": "supplier_has_fund_contract",
+      "required": true,
+      "source_ids": [
+        "synthetic-demo"
+      ],
+      "label": "Учебное условие"
+    }
+  ],
+  "checklist": [
+    {
+      "item_id": "demo_application",
+      "label": "Учебное заявление",
+      "required_when": "always",
+      "source_ids": [
+        "synthetic-demo"
+      ]
+    },
+    {
+      "item_id": "demo_prescription",
+      "label": "Учебный пример назначения (при наличии)",
+      "required_when": "if_available",
+      "source_ids": [
+        "synthetic-demo"
+      ]
+    },
+    {
+      "item_id": "demo_authority",
+      "label": "Учебный пример полномочий представителя",
+      "required_when": "representative",
+      "source_ids": [
+        "synthetic-demo"
+      ]
+    }
+  ],
+  "addressee": {
+    "status": "known",
+    "value": {
+      "kind": "text",
+      "value": "Вымышленная учебная организация; не адресат реального обращения"
+    },
+    "evidence": [
+      {
+        "kind": "source",
+        "source_id": "synthetic-demo",
+        "locator": "fixture",
+        "observed_at": "2026-09-29T12:00:00Z"
+      }
+    ]
+  },
+  "next_steps": [
+    "route.verify_real_rules",
+    "route.no_approval_promise"
+  ],
+  "source_ids": [
+    "synthetic-demo"
+  ]
+}

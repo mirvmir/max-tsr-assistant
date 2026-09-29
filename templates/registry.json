@@ -1,0 +1,69 @@
+{
+  "schema_version": "1.0.0",
+  "registry_id": "demo-templates",
+  "version": "1.0.0",
+  "data_kind": "synthetic",
+  "review": {
+    "status": "draft"
+  },
+  "templates": [
+    {
+      "template_id": "demo-purchase-card",
+      "version": "1.0.0",
+      "document_kind": "purchase_card",
+      "assets": [
+        {
+          "format": "pdf",
+          "renderer_id": "reportlab-v1",
+          "path": "templates/purchase_card.pdf.json",
+          "sha256": "2972fd007e98fdfc55cf1e1935d8efe6c86c76e5aca18c1b87fe8b56b7e56134"
+        }
+      ]
+    },
+    {
+      "template_id": "demo-application",
+      "version": "1.0.0",
+      "document_kind": "application",
+      "assets": [
+        {
+          "format": "pdf",
+          "renderer_id": "reportlab-v1",
+          "path": "templates/application.pdf.json",
+          "sha256": "7ebbc68506d1fa24445307bab04c520144b549199e8218e53798e8511f0a5959"
+        },
+        {
+          "format": "docx",
+          "renderer_id": "python-docx-v1",
+          "path": "templates/application.docx.json",
+          "sha256": "72985c99814d120b7b947bd19635694fc396c422a1a65eef7b3bb3e73537db90"
+        }
+      ]
+    },
+    {
+      "template_id": "demo-product-card",
+      "version": "1.0.0",
+      "document_kind": "product_card",
+      "assets": [
+        {
+          "format": "pdf",
+          "renderer_id": "reportlab-v1",
+          "path": "templates/product_card.pdf.json",
+          "sha256": "f92e599eeae2f820eb3c396778e375742ea87142d1b92257509a490b4766c7a1"
+        }
+      ]
+    },
+    {
+      "template_id": "demo-checklist",
+      "version": "1.0.0",
+      "document_kind": "checklist",
+      "assets": [
+        {
+          "format": "pdf",
+          "renderer_id": "reportlab-v1",
+          "path": "templates/checklist.pdf.json",
+          "sha256": "abce8b14b17c89faef4f24f3b5073310de16bdcdfb3d91034840d39e95698c23"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,97 @@
+openapi: 3.1.0
+info:
+  title: MAX TSR technical API
+  version: 0.1.0
+paths:
+  /health/live:
+    get:
+      summary: Live
+      operationId: health_live
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StatusResponse'
+  /health/ready:
+    get:
+      summary: Ready
+      operationId: health_ready
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StatusResponse'
+        '401':
+          description: Invalid readiness credential
+        '503':
+          description: Not ready
+      security:
+      - ReadinessSecret: []
+  /webhooks/max:
+    post:
+      summary: Webhook
+      operationId: receive_max_update
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StatusResponse'
+        '400':
+          description: Invalid MAX update
+        '401':
+          description: Invalid webhook secret
+        '413':
+          description: Body exceeds configured byte limit
+        '415':
+          description: JSON content type required
+        '503':
+          description: Durable commit unavailable; sender must retry
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - update_type
+              - timestamp
+              properties:
+                update_type:
+                  type: string
+                  maxLength: 64
+                timestamp:
+                  type: integer
+                  format: int64
+                  description: Unix milliseconds
+              additionalProperties: true
+              description: MAX Update. Required event fields are validated; irrelevant
+                fields are discarded before persistence.
+      parameters:
+      - in: header
+        name: X-Max-Bot-Api-Secret
+        required: true
+        schema:
+          type: string
+        description: Secret registered with MAX subscription
+components:
+  schemas:
+    StatusResponse:
+      properties:
+        status:
+          type: string
+          title: Status
+      type: object
+      required:
+      - status
+      title: StatusResponse
+  securitySchemes:
+    ReadinessSecret:
+      type: apiKey
+      in: header
+      name: X-Readiness-Secret
