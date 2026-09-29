@@ -27,6 +27,8 @@ Pilot fail-closed: flags не превращают synthetic draft в reviewed p
 
 Сообщения MAX теперь plain text: пользовательские значения не требуют HTML-escaping и не интерпретируются как markup. Ограничения длины/кнопок проверяются до `sending`; локальная ошибка форматирования не становится неопределённой внешней доставкой.
 
+`RecoveryReport` дополнен optional `exhausted_ids` с пустым default. Crash recovery применяет configured лимит попыток и bot scope; terminal job, failed bundle и восстановление текущего диалога сохраняются атомарно. Неоднозначные отправки, включая оставшиеся `sending` у terminal jobs, переходят в `delivery_unknown` без автоматического повтора.
+
 ## Проверка и независимая оценка
 
 Команды, фактический итог тестов и оценка независимого агента фиксируются в `docs/verification/implementation-review.md` после финального прогона. Предварительный reviewer выявил восемь важных дефектов: startup, supervision render, retry upload, привязка rendered hash, смена выбора, MAX size limits, receipt binding и CA configuration. Для исправлений добавлены точечные регрессии; итоговая оценка относится к demo-границе, указанной выше.
