@@ -1,58 +1,59 @@
-# MAX boundary and operational checks
+# Подключение MAX
 
-Checked against current official documentation on **2026-09-30**. The official developer documentation is hosted at `dev.max.ru`. Official content was retrieved through web search; direct page fetch did not work in this execution environment. No MAX credentials were provided. These are local fixture and PostgreSQL checks, not a live MAX or mobile/web validation.
+## HTTPS webhook
 
-| Operation | Official source | Adapter behavior |
+1. Сохраните токен бота в `secrets/max_bot_token` одной строкой.
+2. Разместите приложение за HTTPS reverse proxy. В `.env` задайте `TSR_WEBHOOK_URL=https://your-host.example/webhooks/max`.
+3. Зарегистрируйте подписку через [POST /subscriptions](https://dev.max.ru/docs-api/methods/POST/subscriptions). Укажите URL webhook, события `message_created`, `message_callback`, `bot_started` и значение из `secrets/webhook_secret`.
+4. Перезапустите сервисы и проверьте состояние:
+
+   ```bash
+   docker compose up --build -d
+   docker compose exec app tsr health
+   ```
+
+5. Откройте личный диалог с ботом и выполните [демонстрационные сценарии](../FIRST_SCENARIO.md).
+
+Адрес API в конфигурации: `https://platform-api2.max.ru`. Адаптер передаёт токен заголовком `Authorization`. HTTP-порт контейнера привязан к `127.0.0.1:8080`; внешний TLS завершает reverse proxy.
+
+## Локальный polling
+
+Для локального бота без публичного webhook используйте [Windows startup](../WINDOWS_START.md) или override Compose:
+
+```bash
+docker compose -f compose.yaml -f compose.polling.yaml up --build -d
+```
+
+Для polling оставьте `TSR_WEBHOOK_URL` пустым и удалите ранее зарегистрированную webhook-подписку согласно [API MAX](https://dev.max.ru/docs-api/methods/DELETE/subscriptions). Bridge проверяет подписки перед получением обновлений.
+
+`tools/poll_max.py` передаёт обновления в тот же защищённый HTTP-вход. Курсор и ожидающие события сохраняются зашифрованно. Курсор продвигается после подтверждения записи или сохранения постоянного отказа. Временная ошибка сохраняет событие для повтора. Постоянные отказы учитываются ограниченными счётчиками причин.
+
+## TLS
+
+Проверка сертификата и имени узла включена. Для дополнительной доверенной цепочки задайте `TSR_MAX_CA_BUNDLE` и подключите подготовленный оператором PEM bundle:
+
+```bash
+docker compose -f compose.yaml -f compose.max-ca.yaml up --build -d
+```
+
+`TSR_MAX_CA_BUNDLE_HOST` задаёт локальный путь к bundle. Включите в него корни, необходимые API MAX и узлам загрузки файлов. Подробные команды Windows находятся в [WINDOWS_START.md](../WINDOWS_START.md). Пример локальных путей: [compose.local-ca.example.yaml](../../compose.local-ca.example.yaml).
+
+## HTTP-вход и доставка
+
+| Операция | Поведение | Контракт MAX |
 | --- | --- | --- |
-| Webhook | [POST subscriptions](https://dev.max.ru/docs-api/methods/POST/subscriptions) | Constant-time `X-Max-Bot-Api-Secret` check; JSON size bound; no ACK before DB commit |
-| Updates | [Update](https://dev.max.ru/docs-api/objects/Update), [bot setup](https://dev.max.ru/docs/chatbots/bots-coding/prepare) | Millisecond timestamps; start, private text, private callbacks; other events minimized to ignored |
-| Send | [POST messages](https://dev.max.ru/docs-api/methods/POST/messages) | Raw access token in Authorization header; private user ID resolved from encrypted identity; receipt from returned message body `mid` |
-| Edit | [PUT messages](https://dev.max.ru/docs-api/methods/PUT/messages) | Known owner-bound persisted message receipt required; `success: true` checked |
-| Callback answer | [POST answers](https://dev.max.ru/docs-api/methods/POST/answers) | Verified callback ID and bound answer; checks `success: true`; CallbackReceipt has no invented message ID |
-| Upload | [POST uploads](https://dev.max.ru/docs-api/methods/POST/uploads), [media flow](https://dev.max.ru/docs-api/use-cases/sending-messages/media) | File type; multipart field `data`; signed HTTPS upload URL; token stored through encrypted repository writer |
-| Subscription inspection | [GET subscriptions](https://dev.max.ru/docs-api/methods/GET/subscriptions) | Verifies configured URL and required update types; does not claim remote secret verification |
+| Webhook | Проверка `X-Max-Bot-Api-Secret`, запись inbox/job до ответа 200 | [Subscriptions](https://dev.max.ru/docs-api/methods/POST/subscriptions) |
+| События | Личный старт, текст и callback, минимизация входных данных | [Update](https://dev.max.ru/docs-api/objects/Update) |
+| Сообщения | Текст и кнопки, получатель из сохранённой identity | [Messages](https://dev.max.ru/docs-api/methods/POST/messages) |
+| Callback | Ответ по связанному callback ID | [Answers](https://dev.max.ru/docs-api/methods/POST/answers) |
+| Файлы | Загрузка, сохранение attachment reference, отправка владельцу | [Uploads](https://dev.max.ru/docs-api/methods/POST/uploads) |
 
-The current documented base URL is `https://platform-api2.max.ru`. Bot authentication is `Authorization: <access_token>`; the token is not a query parameter or a Bearer token. HTTPS webhook port 443 and a trusted certificate are deployment requirements. The documented webhook response window is 30 seconds. Receiving an HTTP 200 acknowledges durable acceptance of the event; it does not mean the scenario or delivery succeeded.
+Дубликат входного события не создаёт второе задание. Worker сохраняет состояние отправки до внешнего запроса. HTTP 429 и `attachment.not.ready` допускают ограниченный повтор. При неопределённом исходе отправки пользователь явно запрашивает повтор. Постоянный отказ не запускает бесконечные попытки.
 
-## Ingress
+Секреты, тексты сообщений и содержимое кейсов не попадают в диагностические ответы. Доступ к документу проверяется по владельцу, версии кейса и сроку действия.
 
-Only the trusted platform envelope resolves identity. User text, start payload and callback handle cannot supply `owner_id` or an outgoing chat ID. Private message sender/callback user IDs are HMAC-indexed with the bot scope. Raw MAX names, usernames, contacts, attachments, and forwarded-message metadata are discarded. Platform recipient IDs are encrypted as part of IdentityRecord, and lookup/dedupe indexes contain HMAC values. The event payload keeps only bounded text or opaque callback handle plus verified callback ID. Start payload is limited to the server's `start`, `help`, and `resume` allowlist.
+## Состояние сервиса
 
-Group/channel updates and callbacks without a supported private-chat envelope are minimized to `IgnoredEvent(reason='private_chat_required')`. When the authenticated platform envelope contains a valid non-bot actor ID, only that ID resolves the encrypted private delivery identity; the group chat ID, group text and callback handle are discarded. The application emits static private-chat guidance with no case read, case content or action handles, through the same durable owner-bound permit and private user-ID transport. It never replies to a guessed group ID. Unsupported events without a safe actor are ignored without delivery. Malformed supported update schemas are rejected. There is no raw update storage.
+`GET /health/live` проверяет HTTP-процесс. `GET /health/ready` требует `X-Readiness-Secret` и проверяет БД, worker, активный пакет, секреты, HTTPS-подписку и состояние восстановления. Локальная демонстрация работает без токена, а readiness подключения MAX при этом возвращает 503. Polling не заменяет условие HTTPS-подписки в readiness.
 
-The webhook transaction upserts identity, inserts inbox with scoped uniqueness, and enqueues exactly one process_inbox job. A duplicate returns 200 after its transaction commits. Any storage/commit failure returns 503. PostgreSQL work runs in a thread pool so the HTTP event loop does not execute blocking DB I/O.
-
-## Transport and recovery
-
-The composition root supplies an explicit httpx.Client and trusted owner-bound recipient, attachment and known-message resolvers. The application durably enters `sending` and saves SendPermit before any send operation. View/callback/material payload hashes must match the saved typed payload. Expired permits or foreign targets are rejected before network I/O. Attachment tokens are decrypted inside this boundary; UploadResult exposes a UUID reference only. Uploaded does not mean processed or delivered. Sending an historical file also requires an acknowledged warning and shows a short historical warning in the message.
-
-`attachment.not.ready` is a definite, safe-to-retry rejection using the existing upload reference and existing rendered artifact. HTTP 429 is a definite retryable rejection. Other explicit 4xx rejections are permanent unless otherwise documented; explicit platform `success: false` is a rejection. Timeout, HTTP 408, ambiguous 5xx, redirects, malformed successful responses or a missing receipt produce `unknown`, with no automatic safe resend. A recovery worker must preserve `delivery_unknown`; only explicit user retry may create a new send attempt. Upload retries can leave remote orphan tokens but do not send duplicate messages or re-render artifacts.
-
-The live composition uses atomic PostgreSQL quota admission shared by transport instances in the configured bot scope: 30 API requests per one-second fixed window and two private send/edit/callback operations per owner per window. A local sliding gate additionally limits 30 requests/second and one recipient operation every 0.5 seconds. Admission rejection returns a definite retryable result without sleeping. Fixed windows allow boundary bursts across different processes, so this first deployment retains one worker; strict shared sliding admission would be needed before claiming an aggregate sliding-window bound. Network timeouts are explicit, redirects disabled, response sizes bounded. Russian copy and user values are sent as plain text with no `format` field, preserving the 4000-character bound without HTML entity expansion; short related controls share a row; product choices, files and destructive actions retain a full row. Callback handles remain opaque. Signed uploads are allowlisted to documented MAX upload hosts; bot Authorization and Cookie headers are removed. Attachment filenames are the artifact UUID plus `.pdf` or `.docx`.
-
-No user-facing download, administration or identity HTTP API exists. The CLI's deterministic transport is configured outside this HTTP module. Render processes do not receive token, settings or database connections.
-
-## Trusted TLS CA bundle
-
-The official API pages linked above advise adding the Ministry of Digital Development certificate to the trusted certificate list for `platform-api2.max.ru`. The live transport constructs `ssl.create_default_context()` and passes that verified SSLContext to httpx with `trust_env=False`. Certificate chain and hostname verification are always enabled; there is no `verify=False` path.
-
-When the deployment needs an approved additional trust chain, set `TSR_MAX_CA_BUNDLE` to a readable PEM CA bundle path (Settings.max_ca_bundle). The bundle is supplied by the operator, mounted read-only, and loaded through `ssl.create_default_context(cafile=...)`; no certificate is downloaded automatically. A custom bundle defines the trust anchors, so include the approved roots required by both the MAX API and signed upload hosts. Leaving the setting empty uses the system default trust store. A missing or invalid file fails startup instead of weakening TLS verification. Local tests exercise default verification and an explicitly supplied synthetic CA; live connectivity remains pending credentials/deployment.
-
-For the optional Compose deployment, set `TSR_MAX_CA_BUNDLE_HOST` to the operator-provided complete PEM bundle (ordinary approved roots plus the trusted Ministry root), then use `docker compose -f compose.yaml -f compose.max-ca.yaml up -d --build`. The override mounts the bundle read-only at `/run/max-ca/ca-bundle.pem` in the app and worker and sets `TSR_MAX_CA_BUNDLE` to that container path. The default Compose deployment uses the default system trust store and does not mount a custom certificate bundle.
-
-
-## Readiness, maintenance and local verification
-
-The only HTTP routes are `POST /webhooks/max`, `GET /health/live` and the protected `GET /health/ready`. Readiness requires a reachable database, a current valid active release in the exact `(mode, bot_scope)`, all required package/leaf lifecycle checks, a recent worker heartbeat for the current deployment commit, critical secrets, an HTTPS webhook URL, and a recent successful subscription inspection when MAX is configured. A persistent pending or failed restore prevents readiness. Healthy responses contain only `{"status":"ready"}`; authenticated degraded responses return HTTP 503 and `{"status":"degraded"}`. Unauthenticated requests return 401. The route never exposes owners, worker IDs, release contents, DSNs, secrets or internal reasons. An unconfigured MAX token deliberately yields degraded readiness, including in demo mode; local demo commands still work.
-
-The worker persists its scoped heartbeat even while idle, including capacity of one render process and one delivery thread. It records scoped queue and execution duration aggregates (count, total, last and maximum elapsed time) for inbox, rendering and delivery; aggregates contain no owners, jobs or trace IDs. Safe JSON alerts separately include opaque job/trace/correlation UUIDs and a machine code without exception text or payloads. Every `TSR_MAINTENANCE_INTERVAL_SECONDS` (default 300), a separate single maintenance thread inspects subscriptions, persists only a safe status/time/reason summary, runs scoped retention, and purges expired encrypted backup archives from `TSR_BACKUP_ROOT`. Retention and blob/archive I/O execute outside the HTTP handler and outside a long SQL transaction. Subscription inspection verifies the configured URL and the `message_created`, `message_callback`, `bot_started` update types. GET response schemas that cannot be understood fail closed. Inspection cannot establish the remote secret value; `secret_verified` stays false. Webhook authentication still requires the configured constant-time secret check on every incoming request. The official GET page could not be fetched in this environment on the verification date; current POST subscription and Update documentation establish the requested event types and secret behavior.
-
-Operator commands use the same checked release operations: `validate-data`, `import-release`, `activate-release`, `rollback-release`, and `revoke-package`, plus `health`, `maintenance`, `backup`, `export-deletion-journal`, and `restore`. Activation and rollback use the configured bot scope and cannot bypass revoked, expired or invalid dependencies. Restore requires an empty offline target, explicit maintenance/offline/source-offline attestations, and an independently exported encrypted current deletion journal with an explicit cutover timestamp; its completeness must cover that cutover. The current journal is separate from historical backup archives and is never included in the seven-day archive purge.
-
-`tsr demo --dataset public` (the CLI default) reads the supplied synthetic user profile against the audited public catalog, through the ordinary application facade and confirmation flow. It uses isolated scope `<configured>:demo:public`; `--dataset synthetic` uses `<configured>:demo:synthetic` and preserves the old synthetic smoke inputs. Demo activation cannot replace the working bot's scoped active release. Local receipts, upload tokens and downloads are simulations, and neither command connects to MAX.
-
-`tools/load_check.py` exercises real PostgreSQL, the application facade and one bounded worker using 50 synthetic actors, 1000 separate synthetic snapshots and at least 100 documents. It records durable completion/error counts and p95 queue, facade, rendering and local-delivery times in JSON. Its initial burst is followed by round-robin facade events targeted at five events/second with compute-independent deadline pacing and bounded catch-up. Each actor waits for its preceding view; the measured achieved arrival rate must meet the two-percent tolerance for PASS. A separate `--mode documents` run prepares frozen previews before the timed phase, queues 100 render jobs with the worker paused, then verifies 100 ready documents and authorized local material reads with one worker. Both modes record errors and durable completion explicitly. This does not measure webhook/proxy throughput, MAX network delivery or client rendering. Run with `TSR_TEST_DATABASE_URL` and `PYTHONPATH=src`; the harness creates and removes an isolated database schema and private synthetic blobs. See its module documentation for the bounded command options.
-
-## Local Windows polling
-
-For development without a public HTTPS endpoint, see [Windows startup](../WINDOWS_START.md). The optional `compose.polling.yaml` bridge checks the bot identity and existing subscriptions, encrypts pending updates, and forwards them to the authenticated HTTP inbox. The cursor advances only after durable acknowledgements or a persisted permanent rejection. Only the inbox's exact `400 invalid_update` and `413 body_too_large` responses, and updates exceeding the local byte limit, are permanently discarded. The encrypted state retains bounded reason counters, not rejected contents; logs contain fixed diagnostic codes only. Network, authentication, configuration and unexpected-response errors retain pending events for retry. An existing checkpoint is directory-synchronized before its cursor can be sent, including after a failed save or restart. The worker and inbox remain the ordinary application path; production readiness still requires an HTTPS webhook. TLS setup, restart and shutdown commands are documented with a portable Compose CA example.
+Операторская команда `tsr health` выводит коды состояния и агрегированные метрики очередей. Форматы HTTP описаны в [OpenAPI](../api/openapi.json) и [DATA-API.yaml](../api/DATA-API.yaml). Резервное копирование, очистка и восстановление описаны в [RUNBOOK.md](../RUNBOOK.md).

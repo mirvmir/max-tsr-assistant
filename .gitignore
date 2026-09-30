@@ -11,3 +11,4 @@ var/
 build/
 dist/
 pytest-of-root/
+submission-private/

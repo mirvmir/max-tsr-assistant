@@ -1,47 +1,74 @@
-# max-tsr-assistant
+# Помощник по подбору ТСР в MAX
 
-Диалоговый помощник MAX для технического подбора ТСР: карточка покупки и предварительная проверка маршрута с пакетом черновиков. Новый каталог содержит **12 реальных предложений Ortonica и Medicamarket** с источниками и датой наблюдения. Ввод пользователя, правила технической сверки, маршрут и неофициальные шаблоны остаются синтетической demo-моделью. Каждый результат помечен DEMO; медицинская пригодность и пилот ещё требуют предметного утверждения.
+Диалоговый помощник для сравнения кресел-колясок по заданным параметрам, расчёта стоимости с электронным сертификатом и подготовки документов.
 
-Python-монолит, PostgreSQL 16, одна кодовая база и образ для HTTP и worker. PostgreSQL хранит inbox/jobs/outbox, подтверждённый ввод и неизменяемые manifest. Один дочерний процесс `spawn` готовит документы; файлы и чувствительные записи хранятся зашифрованно. UI — русский диалог MAX с подтверждением значений, выбором роли, возвратом, исправлением и материалами.
+Пользователь подтверждает параметры, сравнивает предложения и выбирает один из двух сценариев:
 
-## Первый запуск
+- **Покупка:** карточка выбранного изделия, расчёт и вопросы поставщику в PDF.
+- **Обращение:** черновик заявления в DOCX и PDF, карточка ТСР и чек-лист в PDF.
 
-**Windows / локальный бот без домена:** [готовая команда запуска и подключение MAX](docs/WINDOWS_START.md).
-Первый запуск: `powershell -NoProfile -ExecutionPolicy Bypass -File .\start.ps1 -Offline`.
-Затем сохраните токен в `secrets/max_bot_token` и повторите команду без `-Offline`.
-Если MAX требует дополнительный CA, подготовьте локальный bundle по инструкции.
+Каталог содержит **12 предложений Ortonica и Medicamarket** со ссылками на конкретные комплектации и датой снимка **30.09.2026**. Демонстрация использует учебные профили, маршрут и шаблоны с маркировкой DEMO.
 
-Нужны Git, Python 3.12+ для создания локальных секретов и Docker Compose v2. Образ использует Python 3.13. Из корня репозитория:
+[Презентация PDF](docs/presentation.pdf) · [Архитектура](docs/ARCHITECTURE.md) · [Сценарий демонстрации](docs/FIRST_SCENARIO.md)
+
+## Быстрый запуск
+
+Нужны Git, Python 3.12+ и Docker Compose v2. В контейнерах работают Python 3.13 и PostgreSQL 16.
 
 ```bash
+git clone https://github.com/mirvmir/max-tsr-assistant.git
+cd max-tsr-assistant
 cp .env.example .env
 PYTHONPATH=src python -c "from pathlib import Path; from tsr.bootstrap import generate_demo_secrets; generate_demo_secrets(Path('secrets'))"
 docker compose up --build -d
-docker compose exec app tsr demo --scenario purchase --download-dir /tmp/tsr-purchase --show-dialog
-mkdir -p var/purchase
-docker compose cp app:/tmp/tsr-purchase/. var/purchase/
 ```
 
-По умолчанию команда использует реальный каталог: Ortonica Base 200, SKU 5048, ширина 405 мм, цена **14 500 ₽**. При заявленном сертификате 10 000 ₽ ожидается условная разница **4 500 ₽** (`450 000` копеек), `ready` и один PDF. Приём сертификата для заказа и доставка неизвестны; окончательная сумма с доставкой отсутствует. Команда проводит синтетического пользователя через application, PostgreSQL, очереди, worker, рендер и авторизованную выдачу. Локальный transport имитирует MAX, токен бота не нужен. Demo использует отдельную область кейсов, очередей и active release.
+Генератор сохраняет существующие секреты. Данные PostgreSQL и документы хранятся в отдельных Docker volumes.
 
-Старый воспроизводимый набор сохранён: `tsr demo --dataset synthetic --scenario both`. Он ожидает прежнюю разницу 20 000 ₽. Для нового набора можно явно указать `--dataset public`.
+Обе демонстрационные ветки и выгрузка документов:
 
-[Подробная проверка первого сценария и второй ветки](docs/FIRST_SCENARIO.md). [Запуск, секреты и эксплуатация](docs/RUNBOOK.md). [Что реализовано и что осталось](docs/IMPLEMENTATION_STATUS.md). [API MAX и TLS](docs/integrations/MAX.md).
+```bash
+docker compose exec app tsr demo --dataset public --scenario both --download-dir /tmp/tsr-demo --show-dialog
+mkdir -p var/demo
+docker compose cp app:/tmp/tsr-demo/. var/demo/
+```
 
-## Проверки
+Локальная демонстрация использует симулятор MAX. Для подключения бота сохраните его токен в `secrets/max_bot_token` и выполните [инструкцию MAX](docs/integrations/MAX.md).
+
+**Windows:**
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File .\start.ps1 -Offline
+```
+
+[Подключение локального бота и настройка TLS на Windows](docs/WINDOWS_START.md).
+
+## Проверка
 
 ```bash
 python3.12 -m venv .venv
 .venv/bin/python -m pip install -r requirements.lock
 .venv/bin/python -m pip install --no-build-isolation --no-deps -e .
 .venv/bin/python -m pip install pytest==8.4.1 pgserver==0.1.4
+.venv/bin/tsr validate-data --manifest data/releases/real-1.1.0/manifest.json
 TSR_TEST_DATABASE_URL=postgresql://tsr:tsr-local-demo@127.0.0.1:5432/tsr .venv/bin/python -m pytest -q
 ```
 
-Здесь нужен отдельный локальный PostgreSQL с правом создавать тестовые схемы. Compose не публикует порт БД; для него можно выполнять проверки внутри контейнера с тестовыми зависимостями. Без `TSR_TEST_DATABASE_URL` интеграционные тесты пропускаются — такой запуск не подтверждает сквозной сценарий. Тесты создают и удаляют только свои схемы со случайными именами.
+Для полного прогона укажите отдельный PostgreSQL 16 с правом создавать тестовые схемы. Тесты используют схемы со случайными именами. Compose оставляет БД во внутренней сети. Без `TSR_TEST_DATABASE_URL` интеграционные тесты пропускаются.
 
-Проверки покрывают реальные SKU и единицы, деньги и неизвестности, весь каталог, старые/чужие кнопки, preview/manifest hash, отзыв отдельных пакетов, owner/epoch/fence, неопределённую доставку, таймаут рендера, retention и backup/restore. Фактические результаты сквозного сценария, независимого ревью и нагрузочного прогона приводятся в отчёте проверки; локальные проверки не заменяют живые клиенты MAX.
+## Файлы проекта
 
-Исходные требования и контракты сохранены в [docs/specs](docs/specs). Их первоначальные чекбоксы оставлены без изменений; актуальный статус реализации описан отдельно.
+| Материал | Расположение |
+| --- | --- |
+| Исходный код и тесты | [src/tsr](src/tsr), [tests](tests) |
+| Конфигурация и контейнеры | [.env.example](.env.example), [Dockerfile](Dockerfile), [compose.yaml](compose.yaml) |
+| Миграции PostgreSQL | [migrations](migrations) |
+| Архитектура и эксплуатация | [ARCHITECTURE.md](docs/ARCHITECTURE.md), [RUNBOOK.md](docs/RUNBOOK.md) |
+| Технический HTTP API | [OpenAPI 3.1](docs/api/openapi.json), [DATA-API.yaml](docs/api/DATA-API.yaml) |
+| Каталог и источники | [catalog.json](data/catalog/mvp/1.1.0/catalog.json), [описание данных](docs/data/REAL_CATALOG.md) |
+| Демо-профили и эталоны | [data/demo](data/demo), [data/golden](data/golden) |
+| Шаблоны документов | [templates](templates) |
+| Презентация | [PDF](docs/presentation.pdf), [PPTX](docs/presentation.pptx) |
+| Комплект передачи | [docs/submission/checklist.md](docs/submission/checklist.md) |
 
-Нормализованный [catalog.json](data/catalog/mvp/1.1.0/catalog.json), [описание источников и неоднозначностей](docs/data/REAL_CATALOG.md), [независимая сверка публичных фактов](docs/data/FACTUAL_AUDIT.md) и [повторный аудит требований](docs/verification/requirements-audit-2026-09-30.md). Review публичных фактов действует семь дней; непроверенный или просроченный public snapshot не активируется общим demo-флагом.
+Версия комплекта: `v0.1.0-hackathon`. Команда `git rev-parse HEAD` показывает точный commit локальной копии.

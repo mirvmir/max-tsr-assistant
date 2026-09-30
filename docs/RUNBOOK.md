@@ -165,11 +165,6 @@ worker, transport bindings и readiness учитывают barrier. Только
 разрешает дальнейший startup; после неудачи не снимайте gate вручную, создайте
 новую пустую цель и повторите проверенную процедуру.
 
-Локальный restore drill работает на изолированной реальной PG DB и проверяет
-антивосстановление удалённого кейса. Он не является проверкой эксплуатационного
-восстановления на вашем сервере. Один архив ограничен по размеру и рассчитан на
-первый MVP; соответствие целевому RPO/RTO требует отдельного измерения.
-
 ## Локально без Docker
 
 Установите зависимости по README и запустите PostgreSQL 16 отдельно. Создайте
@@ -181,5 +176,4 @@ webhook/readiness secrets, `TSR_PRIVATE_ROOT=var/private`, `TSR_RELEASE_ROOT=.` 
 Запустите `tsr demo --dataset public --scenario both --show-dialog`. Для живого
 бота запускаются отдельно `tsr serve` и `tsr worker`. Editable installation
 предполагает наличие data/templates/fonts в checkout; standalone wheel не
-содержит весь release payload. Полный Docker build/restart, два живых MAX клиента
-и исследование с реальными участниками требуют отдельной приёмки.
+содержит весь release payload. Запуск выполняется из корня репозитория с указанными переменными окружения.
