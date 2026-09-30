@@ -6,6 +6,11 @@ Python-монолит, PostgreSQL 16, одна кодовая база и обр
 
 ## Первый запуск
 
+**Windows / локальный бот без домена:** [готовая команда запуска и подключение MAX](docs/WINDOWS_START.md).
+Первый запуск: `powershell -NoProfile -ExecutionPolicy Bypass -File .\start.ps1 -Offline`.
+Затем сохраните токен в `secrets/max_bot_token` и повторите команду без `-Offline`.
+Если MAX требует дополнительный CA, подготовьте локальный bundle по инструкции.
+
 Нужны Git, Python 3.12+ для создания локальных секретов и Docker Compose v2. Образ использует Python 3.13. Из корня репозитория:
 
 ```bash
@@ -26,10 +31,10 @@ docker compose cp app:/tmp/tsr-purchase/. var/purchase/
 ## Проверки
 
 ```bash
-python -m venv .venv
+python3.12 -m venv .venv
 .venv/bin/python -m pip install -r requirements.lock
 .venv/bin/python -m pip install --no-build-isolation --no-deps -e .
-.venv/bin/python -m pip install pytest==8.4.1
+.venv/bin/python -m pip install pytest==8.4.1 pgserver==0.1.4
 TSR_TEST_DATABASE_URL=postgresql://tsr:tsr-local-demo@127.0.0.1:5432/tsr .venv/bin/python -m pytest -q
 ```
 

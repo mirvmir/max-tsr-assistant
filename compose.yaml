@@ -36,8 +36,8 @@ services:
     command: ["tsr", "serve"]
     restart: unless-stopped
   worker:
-    build: .
     image: max-tsr-assistant:0.1.0
+    pull_policy: never
     env_file: .env
     depends_on:
       db:

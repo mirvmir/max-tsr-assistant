@@ -7,6 +7,17 @@ from uuid import UUID
 from tsr.contracts import ViewModel, content_hash
 
 
+# Pair only known, short controls. Product choices, files and destructive actions
+# keep a full row, so similar names never become ambiguous on mobile.
+_BUTTON_GROUPS = {
+    "back": "navigation", "resume": "navigation",
+    "materials": "resources", "help": "resources",
+    "Мои кейсы": "cases", "Новый кейс с актуальным каталогом": "cases",
+    "Да": "answer", "Нет": "answer",
+    "confirm": "confirmation", "edit": "confirmation",
+}
+
+
 @dataclass(frozen=True)
 class MaxButton:
     text: str
@@ -38,12 +49,19 @@ def render_max_view(view: ViewModel) -> MaxMessagePayload:
     if len(text) > 4000:
         raise ValueError('max_view_too_large')
     rows = []
+    previous_group = None
     for action in view.actions:
         label = resolve_message(action.label_key)
         if not 1 <= len(label) <= 128 or not 1 <= len(action.action_handle) <= 128:
             raise ValueError('invalid_max_button')
-        # One action per row keeps Russian labels readable on a narrow screen.
-        rows.append((MaxButton(label, action.action_handle),))
+        group = _BUTTON_GROUPS.get(action.label_key)
+        button = MaxButton(label, action.action_handle)
+        if group and group == previous_group and len(rows[-1]) == 1 and len(label) <= 20 and len(rows[-1][0].text) <= 20:
+            rows[-1] += (button,)
+            previous_group = None
+        else:
+            rows.append((button,))
+            previous_group = group
     if len(rows) > 30:
         raise ValueError('too_many_max_buttons')
     return MaxMessagePayload(view.view_id, content_hash(view), text, tuple(rows))

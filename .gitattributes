@@ -1,0 +1,4 @@
+# Release manifests pin these bytes; Windows checkouts must preserve their hashes.
+*.json text eol=lf
+/assets/fonts/LICENSE-DejaVu.txt text eol=lf
+/docs/data/FACTUAL_AUDIT.md text eol=lf
