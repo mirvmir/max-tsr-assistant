@@ -50,7 +50,7 @@ def test_demo_questions_do_not_expose_release_metadata_or_change_profile():
                            dialog_revision=0, mode='demo')
     for rule in release.profile.fields:
         view = input_view(case, rule)
-        text = view.sections[0].parameters.root['text']
+        text = view.sections[0].parameters['text']
         assert len(text) < 180
         assert not any(word in text for word in ('draft', 'public_snapshot', 'экспертом'))
         assert any(action.action_key == 'unknown' for action in view.actions)

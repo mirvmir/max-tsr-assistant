@@ -1,0 +1,28 @@
+# Local MAX development without a public HTTPS endpoint.
+services:
+  polling:
+    image: max-tsr-assistant:0.1.0
+    pull_policy: never
+    env_file: .env
+    environment:
+      TSR_LOCAL_WEBHOOK_URL: http://app:8080/webhooks/max
+      TSR_POLLING_STATE: /var/lib/tsr/blobs/polling.state
+    depends_on:
+      app:
+        condition: service_started
+      worker:
+        condition: service_started
+    volumes:
+      - polling_state:/var/lib/tsr/blobs
+      - ./tools/poll_max.py:/app/tools/poll_max.py:ro
+    secrets:
+      - encryption_key
+      - identity_hmac_key
+      - max_bot_token
+      - webhook_secret
+      - health_token
+    command: ["python", "/app/tools/poll_max.py"]
+    restart: unless-stopped
+    stop_grace_period: 40s
+volumes:
+  polling_state:

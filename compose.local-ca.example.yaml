@@ -1,0 +1,11 @@
+# Optional local trust bundle; copy to compose.local-ca.yaml after preparing it.
+# See docs/WINDOWS_START.md. No changes to the Windows system trust store.
+x-max-ca: &max-ca
+  environment:
+    TSR_MAX_CA_BUNDLE: /run/max-ca/ca-bundle.pem
+  volumes:
+    - ./var/ca/ca-bundle.pem:/run/max-ca/ca-bundle.pem:ro
+services:
+  app: *max-ca
+  worker: *max-ca
+  polling: *max-ca

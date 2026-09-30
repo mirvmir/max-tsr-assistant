@@ -3,6 +3,7 @@ __pycache__/
 .pytest_cache/
 *.pyc
 .env
+compose.local-ca.yaml
 secrets/
 var/
 .superpowers/
