@@ -26,6 +26,7 @@ class VerifiedUpdate:
     platform_callback_id: str | None = None
     start_payload: str | None = None
     reply_to_message_id: str | None = None
+    ignored_reason: str = "unsupported"
 
 
 def _object(value):
@@ -77,15 +78,21 @@ def parse_update(body: bytes, max_text_chars: int = 4000) -> VerifiedUpdate:
                                   user_id, chat_id, start_payload=payload if payload in {'start','help','resume'} else None)
         if kind not in {'message_created', 'message_callback'}:
             return ignored
+        def guidance():
+            source = update.get('callback', {}).get('user') if kind == 'message_callback' and isinstance(update.get('callback'),dict) else update.get('message', {}).get('sender') if isinstance(update.get('message'),dict) else None
+            if not isinstance(source,dict) or source.get('is_bot') is True or type(source.get('user_id')) is not int or source['user_id'] <= 0:
+                return ignored
+            user_id = str(_integer(source['user_id']))
+            return VerifiedUpdate('ignored', occurred, ignored.event_key, platform_user_id=user_id, ignored_reason='private_chat_required')
         message = update.get('message')
         if message is None and kind == 'message_callback':
-            return ignored  # No original private message: no trusted delivery context.
+            return guidance()
         message = _object(message)
         recipient = _object(message.get('recipient'))
         if recipient.get('chat_type') not in {'dialog', 'chat', 'channel'}:
             raise ValueError('invalid_update')
         if recipient['chat_type'] != 'dialog':
-            return ignored
+            return guidance()
         chat_id = str(_integer(recipient.get('chat_id')))
         if kind == 'message_callback':
             callback = _object(update.get('callback'))
@@ -131,7 +138,7 @@ def normalize_update(update: VerifiedUpdate, identity, *, received_at: datetime,
     elif update.kind == 'start':
         payload = StartEvent(payload=update.start_payload)
     else:
-        payload = IgnoredEvent()
+        payload = IgnoredEvent(reason=update.ignored_reason)
     dedupe = hmac.new(key, json.dumps(['event-v1', identity.bot_scope, identity.lookup_key, update.event_key], separators=(',', ':')).encode(), hashlib.sha256).hexdigest()
     return Result.success(NormalizedEvent(inbox_id=uuid4(), bot_scope=identity.bot_scope, dedupe_key=dedupe,
                          owner_id=identity.owner_id, delivery_target_id=identity.delivery_target_id,
@@ -152,8 +159,13 @@ def persist_update(db, settings, update: VerifiedUpdate, received_at: datetime) 
                        delivery_target_id=target_id, bot_scope=settings.bot_scope, lookup_key=lookup,
                        platform_user_id=update.platform_user_id, platform_chat_id=update.platform_chat_id))
         # A conflicting private target cannot redirect an already bound owner.
-        if identity.platform_user_id != update.platform_user_id or identity.platform_chat_id != update.platform_chat_id:
+        if identity.platform_user_id != update.platform_user_id:
             raise ValueError('identity_binding_conflict')
+        if update.platform_chat_id is not None and identity.platform_chat_id != update.platform_chat_id:
+            if identity.platform_chat_id is not None:
+                raise ValueError('identity_binding_conflict')
+            identity = identity.model_copy(update={'platform_chat_id':update.platform_chat_id})
+            uow.identities.save(identity)
         event = normalize_update(update, identity, received_at=received_at, key=key).value
         _, inserted = uow.inbox.insert_unique(InboxRecord(inbox_id=event.inbox_id, owner_id=identity.owner_id,
                     bot_scope=settings.bot_scope, event_key=event.dedupe_key, event=event,

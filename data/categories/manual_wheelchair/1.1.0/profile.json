@@ -1,0 +1,90 @@
+{
+  "schema_version": "1.0.0",
+  "profile_id": "manual-wheelchair-technical",
+  "version": "1.1.0",
+  "category_id": "manual_wheelchair",
+  "data_kind": "synthetic",
+  "review": {
+    "status": "draft",
+    "reviewer_id": null,
+    "reviewed_at": null,
+    "review_due_at": null
+  },
+  "fields": [
+    {
+      "field_key": "seat_width",
+      "label": "Ширина сиденья",
+      "value_kind": "quantity",
+      "unit": "mm",
+      "operator": "eq",
+      "required_for_complete_comparison": true,
+      "allowed_codes": [],
+      "tolerance": null,
+      "help_text": "Модель технической сверки опубликованной характеристики с подтверждённым вводом. Правила профиля draft, не утверждены предметным экспертом; результат не определяет медицинскую пригодность и не заменяет назначение. Реальные цены и параметры предложения сохраняют отдельную метку public_snapshot.",
+      "source_ids": [
+        "public-ort-base200",
+        "public-ort-base195",
+        "public-ort-base250",
+        "public-ort-base145",
+        "public-ort-base300",
+        "public-ort-base350",
+        "public-med-base200",
+        "public-med-base300",
+        "public-med-base350",
+        "public-med-base400",
+        "public-med-baselite350",
+        "public-med-baselite300"
+      ]
+    },
+    {
+      "field_key": "max_user_mass",
+      "label": "Допустимая масса пользователя",
+      "value_kind": "quantity",
+      "unit": "kg",
+      "operator": "gte",
+      "required_for_complete_comparison": true,
+      "allowed_codes": [],
+      "tolerance": null,
+      "help_text": "Модель технической сверки опубликованной характеристики с подтверждённым вводом. Правила профиля draft, не утверждены предметным экспертом; результат не определяет медицинскую пригодность и не заменяет назначение. Реальные цены и параметры предложения сохраняют отдельную метку public_snapshot.",
+      "source_ids": [
+        "public-ort-base200",
+        "public-ort-base195",
+        "public-ort-base250",
+        "public-ort-base145",
+        "public-ort-base300",
+        "public-ort-base350",
+        "public-med-base200",
+        "public-med-base300",
+        "public-med-base350",
+        "public-med-base400",
+        "public-med-baselite350",
+        "public-med-baselite300"
+      ]
+    },
+    {
+      "field_key": "foldable",
+      "label": "Складная конструкция",
+      "value_kind": "boolean",
+      "unit": null,
+      "operator": "eq",
+      "required_for_complete_comparison": false,
+      "allowed_codes": [],
+      "tolerance": null,
+      "help_text": "Модель технической сверки опубликованной характеристики с подтверждённым вводом. Правила профиля draft, не утверждены предметным экспертом; результат не определяет медицинскую пригодность и не заменяет назначение. Реальные цены и параметры предложения сохраняют отдельную метку public_snapshot.",
+      "source_ids": [
+        "public-ort-base200",
+        "public-ort-base195",
+        "public-ort-base250",
+        "public-ort-base145",
+        "public-ort-base300",
+        "public-ort-base350",
+        "public-med-base200",
+        "public-med-base300",
+        "public-med-base350",
+        "public-med-base400",
+        "public-med-baselite350",
+        "public-med-baselite300"
+      ]
+    }
+  ]
+}

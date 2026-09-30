@@ -3,6 +3,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import datetime, timezone
+from decimal import Decimal
 from pathlib import Path
 from uuid import UUID, uuid4
 
@@ -98,13 +99,30 @@ def _checked(result):
     return result.value
 
 
-def run_demo_scenario(settings, db, application, files, branch="purchase", download_dir=None, role="self"):
+def demo_profile_answers(profile,category):
+    """Translate explicit synthetic fixture values to the same user confirmation flow."""
+    values=[]
+    for rule in category.fields:
+        value=profile.prescribed.get(rule.field_key)
+        if value is None or rule.field_key in profile.unspecified_fields:
+            values.append(None)
+        elif value.kind=="quantity": values.append(str(value.value))
+        elif value.kind=="boolean": values.append("да" if value.value else "нет")
+        elif value.kind=="code": values.append(value.value)
+        else: raise ValueError("unsupported_demo_fixture_value")
+    amount=profile.certificate_amount
+    values.extend((str(Decimal(amount.minor)/100) if amount is not None else None,profile.certificate_applicable_declared))
+    return tuple(values)
+
+
+def run_demo_scenario(settings, db, application, files, branch="purchase", download_dir=None, role="self", *, profile=None):
     if branch not in ("purchase", "support"):
         raise ValueError("unknown_demo_branch")
     from tsr.application import Application
 
     # The emulator's queue is separate from the running bot worker's scope.
-    settings = settings.model_copy(update={"bot_scope": "local-demo-" + uuid4().hex})
+    if ":demo:public" not in settings.bot_scope and ":demo:synthetic" not in settings.bot_scope:
+        settings = settings.model_copy(update={"bot_scope": "local-demo-" + uuid4().hex})
     application = Application(db, application.release, settings, application.clock, application.ids)
     ctx = create_demo_actor(settings, db)
     transport = LocalTransport(TransportBindings(db, files), download_dir)
@@ -122,14 +140,20 @@ def run_demo_scenario(settings, db, application, files, branch="purchase", downl
         return result
 
     def text_and_confirm(outcome, value):
-        proposed = _checked(application.execute_text(ctx, value, outcome.case.case_id))
+        if value is None:
+            proposed = choose(outcome,"unknown")
+        else:
+            proposed = _checked(application.execute_text(ctx, value, outcome.case.case_id))
         worker.drain()
         return choose(proposed, "confirm")
 
     try:
         result = execute(CommandEnvelope(command_id=uuid4(), actor=ctx, type="start_case",
                                          payload=StartCasePayload(category_ref=application.release.profile.ref, requested_role=role)))
-        for answer in ("420", "100", "да", "100000", "да"):
+        if profile is not None and (profile.profile_ref!=application.release.profile.ref or profile.role!=role or not profile.is_synthetic):
+            raise ValueError("demo_profile_mismatch")
+        answers=demo_profile_answers(profile,application.release.profile) if profile is not None else ("420", "100", "да", "100000", "да")
+        for answer in answers:
             result = text_and_confirm(result, answer)
         compared = choose(result, "compare")
         # Comparison actions are ordered together with the displayed offer cards.
@@ -137,9 +161,21 @@ def run_demo_scenario(settings, db, application, files, branch="purchase", downl
         worker.drain()
         result = choose(selected, branch)
         if branch == "support":
-            for answer in ("ru-alt", "да", "Демонстрационный Заявитель", "Синтетический адрес"):
+            support_answers=(profile.region_code,profile.applicant_status_declared,profile.document_fields.get("applicant_name"),profile.document_fields.get("address")) if profile is not None else ("ru-alt", "да", "Демонстрационный Заявитель", "Синтетический адрес")
+            for answer in support_answers:
                 result = text_and_confirm(result, answer)
-        prepare = next(a for a in result.view.actions if a.label_key == "prepare")
+        # Review may span several pages; confirmation exists only on the final page.
+        for _ in range(100):
+            prepare=next((a for a in result.view.actions if a.label_key=="prepare"),None)
+            if prepare is not None: break
+            with db.uow() as uow:
+                forward=next((a for a in result.view.actions if
+                    (resolved:=uow.handles.resolve(ctx,a.action_handle,datetime.now(timezone.utc))).ok and
+                    resolved.value.action.command_type=="navigate" and
+                    resolved.value.action.action_key.startswith("review_page_") and "Далее" in a.label_key),None)
+            if forward is None: raise ValueError("demo_review_incomplete")
+            result=choose(result,forward.label_key)
+        else: raise ValueError("demo_review_too_many_pages")
         with db.uow() as uow:
             handle = _checked(uow.handles.resolve(ctx, prepare.action_handle, datetime.now(timezone.utc)))
             preview = uow.previews.get(handle.action.typed_payload.preview_id)

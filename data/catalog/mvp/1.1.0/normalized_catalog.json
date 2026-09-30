@@ -1,0 +1,2127 @@
+{
+  "schema_version": "1.0.0",
+  "catalog_id": "mvp-public-catalog",
+  "version": "1.1.0",
+  "data_kind": "public_snapshot",
+  "review": {
+    "status": "reviewed",
+    "reviewer_id": "codex-root-public-fact-audit",
+    "reviewed_at": "2026-09-30T01:10:11.200322Z",
+    "review_due_at": "2026-10-07T01:10:11.200322Z"
+  },
+  "suppliers": [
+    {
+      "supplier_id": "ortonica",
+      "display_name": "Официальный магазин производителя Ortonica",
+      "contacts": [
+        {
+          "status": "known",
+          "value": {
+            "kind": "text",
+            "value": "https://ortonica.ru/"
+          },
+          "evidence": [
+            {
+              "kind": "source",
+              "source_id": "public-ort-base200",
+              "locator": "Official shop/retailer domain header and product seller metadata",
+              "observed_at": "2026-09-30T00:50:48.503882Z"
+            }
+          ]
+        }
+      ],
+      "source_ids": [
+        "public-ort-base200",
+        "public-ort-base195",
+        "public-ort-base250",
+        "public-ort-base145",
+        "public-ort-base300",
+        "public-ort-base350"
+      ]
+    },
+    {
+      "supplier_id": "medicamarket",
+      "display_name": "Медикамаркет",
+      "contacts": [
+        {
+          "status": "known",
+          "value": {
+            "kind": "text",
+            "value": "https://medicamarket.ru/"
+          },
+          "evidence": [
+            {
+              "kind": "source",
+              "source_id": "public-med-base200",
+              "locator": "Official shop/retailer domain header and product seller metadata",
+              "observed_at": "2026-09-30T00:50:50.995500Z"
+            }
+          ]
+        }
+      ],
+      "source_ids": [
+        "public-med-base200",
+        "public-med-base300",
+        "public-med-base350",
+        "public-med-base400",
+        "public-med-baselite350",
+        "public-med-baselite300"
+      ]
+    }
+  ],
+  "offers": [
+    {
+      "snapshot_id": "079f6eca-6fb4-5b90-b7ca-c21d0d290113",
+      "offer_id": "ortonica:5048",
+      "supplier_id": "ortonica",
+      "seller_sku": "5048",
+      "variant": {
+        "variant_id": "ortonica:5048",
+        "category_id": "manual_wheelchair",
+        "manufacturer": "ORTONICA",
+        "model": "Base 200",
+        "modification": "Base 200 (40)",
+        "configuration": "Выбранное предложение 5048: сиденье 40,5 см; тип колес «Литые/пневматические»; опубликованные артикулы 00031193."
+      },
+      "profile_ref": {
+        "id": "manual-wheelchair-technical",
+        "version": "1.1.0"
+      },
+      "data_kind": "public_snapshot",
+      "observed_at": "2026-09-30T00:50:48.503882Z",
+      "review": {
+        "status": "reviewed",
+        "reviewer_id": "codex-root-public-fact-audit",
+        "reviewed_at": "2026-09-30T01:10:11.200322Z",
+        "review_due_at": "2026-10-07T01:10:11.200322Z"
+      },
+      "attributes": {
+        "seat_width": {
+          "status": "known",
+          "value": {
+            "kind": "quantity",
+            "value": "405",
+            "unit": "mm"
+          },
+          "evidence": [
+            {
+              "kind": "source",
+              "source_id": "public-ort-base200",
+              "locator": "selected SKU5048: seat_width_cm=40,5; exact decimal cm×10",
+              "observed_at": "2026-09-30T00:50:48.503882Z"
+            }
+          ]
+        },
+        "max_user_mass": {
+          "status": "known",
+          "value": {
+            "kind": "quantity",
+            "value": "130",
+            "unit": "kg"
+          },
+          "evidence": [
+            {
+              "kind": "source",
+              "source_id": "public-ort-base200",
+              "locator": "selected SKU5048: Грузоподъемность/Максимальная нагрузка, кг=130",
+              "observed_at": "2026-09-30T00:50:48.503882Z"
+            }
+          ]
+        },
+        "foldable": {
+          "status": "known",
+          "value": {
+            "kind": "boolean",
+            "value": true
+          },
+          "evidence": [
+            {
+              "kind": "source",
+              "source_id": "public-ort-base200",
+              "locator": "Технические характеристики: Механизм складывания=Ножницы",
+              "observed_at": "2026-09-30T00:50:48.503882Z"
+            }
+          ]
+        }
+      },
+      "price": {
+        "status": "known",
+        "value": {
+          "kind": "money",
+          "value": {
+            "currency": "RUB",
+            "minor": 1450000
+          }
+        },
+        "evidence": [
+          {
+            "kind": "source",
+            "source_id": "public-ort-base200",
+            "locator": "selectedOfferId=5048; OFFERS[ID=5048].ITEM_PRICES[0].PRICE; facts.json#/selected_offer/price_rub",
+            "observed_at": "2026-09-30T00:50:48.503882Z"
+          }
+        ]
+      },
+      "price_kind": "exact",
+      "delivery": {
+        "mode": "unknown",
+        "charge": {
+          "status": "unknown",
+          "value": null,
+          "reason_code": "order_and_region_delivery_quote_required",
+          "evidence": [
+            {
+              "kind": "source",
+              "source_id": "public-ort-base200",
+              "locator": "Delivery conditions are not verified for this order/region",
+              "observed_at": "2026-09-30T00:50:48.503882Z"
+            }
+          ]
+        },
+        "terms": {
+          "status": "unknown",
+          "value": null,
+          "reason_code": "order_and_region_delivery_terms_required",
+          "evidence": [
+            {
+              "kind": "source",
+              "source_id": "public-ort-base200",
+              "locator": "No exact delivery terms bound to selected SKU/order",
+              "observed_at": "2026-09-30T00:50:48.503882Z"
+            }
+          ]
+        }
+      },
+      "accepts_certificate": {
+        "status": "unknown",
+        "value": null,
+        "reason_code": "exact_sku_checkout_acceptance_not_verified",
+        "evidence": [
+          {
+            "kind": "source",
+            "source_id": "public-ort-base200",
+            "locator": "Product card: certificate-payment button/service, not verified checkout",
+            "observed_at": "2026-09-30T00:50:48.503882Z"
+          }
+        ]
+      },
+      "has_fund_contract": {
+        "status": "unknown",
+        "value": null,
+        "reason_code": "no_public_offer_specific_fund_contract_evidence",
+        "evidence": [
+          {
+            "kind": "source",
+            "source_id": "public-ort-base200",
+            "locator": "No fund-contract evidence on captured product page",
+            "observed_at": "2026-09-30T00:50:48.503882Z"
+          }
+        ]
+      },
+      "availability": {
+        "status": "known",
+        "value": {
+          "kind": "code",
+          "value": "in_stock"
+        },
+        "evidence": [
+          {
+            "kind": "source",
+            "source_id": "public-ort-base200",
+            "locator": "OFFERS[ID=5048].CAN_BUY/MAX_QUANTITY; product availability label",
+            "observed_at": "2026-09-30T00:50:48.503882Z"
+          }
+        ]
+      },
+      "source_ids": [
+        "public-ort-base200"
+      ]
+    },
+    {
+      "snapshot_id": "970ffe73-ec84-5bb9-a083-3a7f9d233d9f",
+      "offer_id": "ortonica:386",
+      "supplier_id": "ortonica",
+      "seller_sku": "386",
+      "variant": {
+        "variant_id": "ortonica:386",
+        "category_id": "manual_wheelchair",
+        "manufacturer": "ORTONICA",
+        "model": "Base 195",
+        "modification": "Base 195 (38)",
+        "configuration": "Выбранное предложение 386: сиденье 38 см; тип колес «Литые/пневматические»; опубликованные артикулы 195011511."
+      },
+      "profile_ref": {
+        "id": "manual-wheelchair-technical",
+        "version": "1.1.0"
+      },
+      "data_kind": "public_snapshot",
+      "observed_at": "2026-09-30T00:50:49.009967Z",
+      "review": {
+        "status": "reviewed",
+        "reviewer_id": "codex-root-public-fact-audit",
+        "reviewed_at": "2026-09-30T01:10:11.200322Z",
+        "review_due_at": "2026-10-07T01:10:11.200322Z"
+      },
+      "attributes": {
+        "seat_width": {
+          "status": "known",
+          "value": {
+            "kind": "quantity",
+            "value": "380",
+            "unit": "mm"
+          },
+          "evidence": [
+            {
+              "kind": "source",
+              "source_id": "public-ort-base195",
+              "locator": "selected SKU386: seat_width_cm=38; exact decimal cm×10",
+              "observed_at": "2026-09-30T00:50:49.009967Z"
+            }
+          ]
+        },
+        "max_user_mass": {
+          "status": "known",
+          "value": {
+            "kind": "quantity",
+            "value": "130",
+            "unit": "kg"
+          },
+          "evidence": [
+            {
+              "kind": "source",
+              "source_id": "public-ort-base195",
+              "locator": "selected SKU386: Грузоподъемность/Максимальная нагрузка, кг=130",
+              "observed_at": "2026-09-30T00:50:49.009967Z"
+            }
+          ]
+        },
+        "foldable": {
+          "status": "known",
+          "value": {
+            "kind": "boolean",
+            "value": true
+          },
+          "evidence": [
+            {
+              "kind": "source",
+              "source_id": "public-ort-base195",
+              "locator": "Технические характеристики: Механизм складывания=Ножницы",
+              "observed_at": "2026-09-30T00:50:49.009967Z"
+            }
+          ]
+        }
+      },
+      "price": {
+        "status": "known",
+        "value": {
+          "kind": "money",
+          "value": {
+            "currency": "RUB",
+            "minor": 2990000
+          }
+        },
+        "evidence": [
+          {
+            "kind": "source",
+            "source_id": "public-ort-base195",
+            "locator": "selectedOfferId=386; OFFERS[ID=386].ITEM_PRICES[0].PRICE; facts.json#/selected_offer/price_rub",
+            "observed_at": "2026-09-30T00:50:49.009967Z"
+          }
+        ]
+      },
+      "price_kind": "exact",
+      "delivery": {
+        "mode": "unknown",
+        "charge": {
+          "status": "unknown",
+          "value": null,
+          "reason_code": "order_and_region_delivery_quote_required",
+          "evidence": [
+            {
+              "kind": "source",
+              "source_id": "public-ort-base195",
+              "locator": "Delivery conditions are not verified for this order/region",
+              "observed_at": "2026-09-30T00:50:49.009967Z"
+            }
+          ]
+        },
+        "terms": {
+          "status": "unknown",
+          "value": null,
+          "reason_code": "order_and_region_delivery_terms_required",
+          "evidence": [
+            {
+              "kind": "source",
+              "source_id": "public-ort-base195",
+              "locator": "No exact delivery terms bound to selected SKU/order",
+              "observed_at": "2026-09-30T00:50:49.009967Z"
+            }
+          ]
+        }
+      },
+      "accepts_certificate": {
+        "status": "unknown",
+        "value": null,
+        "reason_code": "exact_sku_checkout_acceptance_not_verified",
+        "evidence": [
+          {
+            "kind": "source",
+            "source_id": "public-ort-base195",
+            "locator": "Product card: certificate-payment button/service, not verified checkout",
+            "observed_at": "2026-09-30T00:50:49.009967Z"
+          }
+        ]
+      },
+      "has_fund_contract": {
+        "status": "unknown",
+        "value": null,
+        "reason_code": "no_public_offer_specific_fund_contract_evidence",
+        "evidence": [
+          {
+            "kind": "source",
+            "source_id": "public-ort-base195",
+            "locator": "No fund-contract evidence on captured product page",
+            "observed_at": "2026-09-30T00:50:49.009967Z"
+          }
+        ]
+      },
+      "availability": {
+        "status": "known",
+        "value": {
+          "kind": "code",
+          "value": "in_stock"
+        },
+        "evidence": [
+          {
+            "kind": "source",
+            "source_id": "public-ort-base195",
+            "locator": "OFFERS[ID=386].CAN_BUY/MAX_QUANTITY; product availability label",
+            "observed_at": "2026-09-30T00:50:49.009967Z"
+          }
+        ]
+      },
+      "source_ids": [
+        "public-ort-base195"
+      ]
+    },
+    {
+      "snapshot_id": "aaa9b560-2c64-5655-bfb0-e00db3473c04",
+      "offer_id": "ortonica:4908",
+      "supplier_id": "ortonica",
+      "seller_sku": "4908",
+      "variant": {
+        "variant_id": "ortonica:4908",
+        "category_id": "manual_wheelchair",
+        "manufacturer": "ORTONICA",
+        "model": "Base 250",
+        "modification": "Base 250 (40)",
+        "configuration": "Выбранное предложение 4908: сиденье 40,5 см; тип колес «Литые/пневматические»; опубликованные артикулы 00031194."
+      },
+      "profile_ref": {
+        "id": "manual-wheelchair-technical",
+        "version": "1.1.0"
+      },
+      "data_kind": "public_snapshot",
+      "observed_at": "2026-09-30T00:50:49.046195Z",
+      "review": {
+        "status": "reviewed",
+        "reviewer_id": "codex-root-public-fact-audit",
+        "reviewed_at": "2026-09-30T01:10:11.200322Z",
+        "review_due_at": "2026-10-07T01:10:11.200322Z"
+      },
+      "attributes": {
+        "seat_width": {
+          "status": "known",
+          "value": {
+            "kind": "quantity",
+            "value": "405",
+            "unit": "mm"
+          },
+          "evidence": [
+            {
+              "kind": "source",
+              "source_id": "public-ort-base250",
+              "locator": "selected SKU4908: seat_width_cm=40,5; exact decimal cm×10",
+              "observed_at": "2026-09-30T00:50:49.046195Z"
+            }
+          ]
+        },
+        "max_user_mass": {
+          "status": "known",
+          "value": {
+            "kind": "quantity",
+            "value": "130",
+            "unit": "kg"
+          },
+          "evidence": [
+            {
+              "kind": "source",
+              "source_id": "public-ort-base250",
+              "locator": "selected SKU4908: Грузоподъемность/Максимальная нагрузка, кг=130",
+              "observed_at": "2026-09-30T00:50:49.046195Z"
+            }
+          ]
+        },
+        "foldable": {
+          "status": "known",
+          "value": {
+            "kind": "boolean",
+            "value": true
+          },
+          "evidence": [
+            {
+              "kind": "source",
+              "source_id": "public-ort-base250",
+              "locator": "Технические характеристики: Механизм складывания=Ножницы",
+              "observed_at": "2026-09-30T00:50:49.046195Z"
+            }
+          ]
+        }
+      },
+      "price": {
+        "status": "known",
+        "value": {
+          "kind": "money",
+          "value": {
+            "currency": "RUB",
+            "minor": 1790000
+          }
+        },
+        "evidence": [
+          {
+            "kind": "source",
+            "source_id": "public-ort-base250",
+            "locator": "selectedOfferId=4908; OFFERS[ID=4908].ITEM_PRICES[0].PRICE; facts.json#/selected_offer/price_rub",
+            "observed_at": "2026-09-30T00:50:49.046195Z"
+          }
+        ]
+      },
+      "price_kind": "exact",
+      "delivery": {
+        "mode": "unknown",
+        "charge": {
+          "status": "unknown",
+          "value": null,
+          "reason_code": "order_and_region_delivery_quote_required",
+          "evidence": [
+            {
+              "kind": "source",
+              "source_id": "public-ort-base250",
+              "locator": "Delivery conditions are not verified for this order/region",
+              "observed_at": "2026-09-30T00:50:49.046195Z"
+            }
+          ]
+        },
+        "terms": {
+          "status": "unknown",
+          "value": null,
+          "reason_code": "order_and_region_delivery_terms_required",
+          "evidence": [
+            {
+              "kind": "source",
+              "source_id": "public-ort-base250",
+              "locator": "No exact delivery terms bound to selected SKU/order",
+              "observed_at": "2026-09-30T00:50:49.046195Z"
+            }
+          ]
+        }
+      },
+      "accepts_certificate": {
+        "status": "unknown",
+        "value": null,
+        "reason_code": "exact_sku_checkout_acceptance_not_verified",
+        "evidence": [
+          {
+            "kind": "source",
+            "source_id": "public-ort-base250",
+            "locator": "Product card: certificate-payment button/service, not verified checkout",
+            "observed_at": "2026-09-30T00:50:49.046195Z"
+          }
+        ]
+      },
+      "has_fund_contract": {
+        "status": "unknown",
+        "value": null,
+        "reason_code": "no_public_offer_specific_fund_contract_evidence",
+        "evidence": [
+          {
+            "kind": "source",
+            "source_id": "public-ort-base250",
+            "locator": "No fund-contract evidence on captured product page",
+            "observed_at": "2026-09-30T00:50:49.046195Z"
+          }
+        ]
+      },
+      "availability": {
+        "status": "known",
+        "value": {
+          "kind": "code",
+          "value": "in_stock"
+        },
+        "evidence": [
+          {
+            "kind": "source",
+            "source_id": "public-ort-base250",
+            "locator": "OFFERS[ID=4908].CAN_BUY/MAX_QUANTITY; product availability label",
+            "observed_at": "2026-09-30T00:50:49.046195Z"
+          }
+        ]
+      },
+      "source_ids": [
+        "public-ort-base250"
+      ]
+    },
+    {
+      "snapshot_id": "32ea9eb4-1b6c-5a16-ad7d-d57c19a157c8",
+      "offer_id": "ortonica:324",
+      "supplier_id": "ortonica",
+      "seller_sku": "324",
+      "variant": {
+        "variant_id": "ortonica:324",
+        "category_id": "manual_wheelchair",
+        "manufacturer": "ORTONICA",
+        "model": "Base 145",
+        "modification": "Base 145 (43)",
+        "configuration": "Выбранное предложение 324: сиденье 43 см; тип колес «Пневматические/пневматические»; опубликованные артикулы 00032214, 145001711."
+      },
+      "profile_ref": {
+        "id": "manual-wheelchair-technical",
+        "version": "1.1.0"
+      },
+      "data_kind": "public_snapshot",
+      "observed_at": "2026-09-30T00:50:49.032264Z",
+      "review": {
+        "status": "reviewed",
+        "reviewer_id": "codex-root-public-fact-audit",
+        "reviewed_at": "2026-09-30T01:10:11.200322Z",
+        "review_due_at": "2026-10-07T01:10:11.200322Z"
+      },
+      "attributes": {
+        "seat_width": {
+          "status": "known",
+          "value": {
+            "kind": "quantity",
+            "value": "430",
+            "unit": "mm"
+          },
+          "evidence": [
+            {
+              "kind": "source",
+              "source_id": "public-ort-base145",
+              "locator": "selected SKU324: seat_width_cm=43; exact decimal cm×10",
+              "observed_at": "2026-09-30T00:50:49.032264Z"
+            }
+          ]
+        },
+        "max_user_mass": {
+          "status": "known",
+          "value": {
+            "kind": "quantity",
+            "value": "130",
+            "unit": "kg"
+          },
+          "evidence": [
+            {
+              "kind": "source",
+              "source_id": "public-ort-base145",
+              "locator": "selected SKU324: Грузоподъемность/Максимальная нагрузка, кг=130",
+              "observed_at": "2026-09-30T00:50:49.032264Z"
+            }
+          ]
+        },
+        "foldable": {
+          "status": "known",
+          "value": {
+            "kind": "boolean",
+            "value": true
+          },
+          "evidence": [
+            {
+              "kind": "source",
+              "source_id": "public-ort-base145",
+              "locator": "Технические характеристики: Механизм складывания=Ножницы",
+              "observed_at": "2026-09-30T00:50:49.032264Z"
+            }
+          ]
+        }
+      },
+      "price": {
+        "status": "known",
+        "value": {
+          "kind": "money",
+          "value": {
+            "currency": "RUB",
+            "minor": 3350000
+          }
+        },
+        "evidence": [
+          {
+            "kind": "source",
+            "source_id": "public-ort-base145",
+            "locator": "selectedOfferId=324; OFFERS[ID=324].ITEM_PRICES[0].PRICE; facts.json#/selected_offer/price_rub",
+            "observed_at": "2026-09-30T00:50:49.032264Z"
+          }
+        ]
+      },
+      "price_kind": "exact",
+      "delivery": {
+        "mode": "unknown",
+        "charge": {
+          "status": "unknown",
+          "value": null,
+          "reason_code": "order_and_region_delivery_quote_required",
+          "evidence": [
+            {
+              "kind": "source",
+              "source_id": "public-ort-base145",
+              "locator": "Delivery conditions are not verified for this order/region",
+              "observed_at": "2026-09-30T00:50:49.032264Z"
+            }
+          ]
+        },
+        "terms": {
+          "status": "unknown",
+          "value": null,
+          "reason_code": "order_and_region_delivery_terms_required",
+          "evidence": [
+            {
+              "kind": "source",
+              "source_id": "public-ort-base145",
+              "locator": "No exact delivery terms bound to selected SKU/order",
+              "observed_at": "2026-09-30T00:50:49.032264Z"
+            }
+          ]
+        }
+      },
+      "accepts_certificate": {
+        "status": "unknown",
+        "value": null,
+        "reason_code": "exact_sku_checkout_acceptance_not_verified",
+        "evidence": [
+          {
+            "kind": "source",
+            "source_id": "public-ort-base145",
+            "locator": "Product card: certificate-payment button/service, not verified checkout",
+            "observed_at": "2026-09-30T00:50:49.032264Z"
+          }
+        ]
+      },
+      "has_fund_contract": {
+        "status": "unknown",
+        "value": null,
+        "reason_code": "no_public_offer_specific_fund_contract_evidence",
+        "evidence": [
+          {
+            "kind": "source",
+            "source_id": "public-ort-base145",
+            "locator": "No fund-contract evidence on captured product page",
+            "observed_at": "2026-09-30T00:50:49.032264Z"
+          }
+        ]
+      },
+      "availability": {
+        "status": "known",
+        "value": {
+          "kind": "code",
+          "value": "on_order"
+        },
+        "evidence": [
+          {
+            "kind": "source",
+            "source_id": "public-ort-base145",
+            "locator": "OFFERS[ID=324].CAN_BUY/MAX_QUANTITY; product availability label",
+            "observed_at": "2026-09-30T00:50:49.032264Z"
+          }
+        ]
+      },
+      "source_ids": [
+        "public-ort-base145"
+      ]
+    },
+    {
+      "snapshot_id": "9c5571a3-a625-5979-b3fb-c0733cb02611",
+      "offer_id": "ortonica:5055",
+      "supplier_id": "ortonica",
+      "seller_sku": "5055",
+      "variant": {
+        "variant_id": "ortonica:5055",
+        "category_id": "manual_wheelchair",
+        "manufacturer": "ORTONICA",
+        "model": "Base 300",
+        "modification": "Base 300 (40)",
+        "configuration": "Выбранное предложение 5055: сиденье 40,5 см; тип колес «Литые/пневматические»; опубликованные артикулы 00031200."
+      },
+      "profile_ref": {
+        "id": "manual-wheelchair-technical",
+        "version": "1.1.0"
+      },
+      "data_kind": "public_snapshot",
+      "observed_at": "2026-09-30T00:52:13.252349Z",
+      "review": {
+        "status": "reviewed",
+        "reviewer_id": "codex-root-public-fact-audit",
+        "reviewed_at": "2026-09-30T01:10:11.200322Z",
+        "review_due_at": "2026-10-07T01:10:11.200322Z"
+      },
+      "attributes": {
+        "seat_width": {
+          "status": "known",
+          "value": {
+            "kind": "quantity",
+            "value": "405",
+            "unit": "mm"
+          },
+          "evidence": [
+            {
+              "kind": "source",
+              "source_id": "public-ort-base300",
+              "locator": "selected SKU5055: seat_width_cm=40,5; exact decimal cm×10",
+              "observed_at": "2026-09-30T00:52:13.252349Z"
+            }
+          ]
+        },
+        "max_user_mass": {
+          "status": "known",
+          "value": {
+            "kind": "quantity",
+            "value": "130",
+            "unit": "kg"
+          },
+          "evidence": [
+            {
+              "kind": "source",
+              "source_id": "public-ort-base300",
+              "locator": "selected SKU5055: Грузоподъемность/Максимальная нагрузка, кг=130",
+              "observed_at": "2026-09-30T00:52:13.252349Z"
+            }
+          ]
+        },
+        "foldable": {
+          "status": "known",
+          "value": {
+            "kind": "boolean",
+            "value": true
+          },
+          "evidence": [
+            {
+              "kind": "source",
+              "source_id": "public-ort-base300",
+              "locator": "Технические характеристики: Механизм складывания=Ножницы",
+              "observed_at": "2026-09-30T00:52:13.252349Z"
+            }
+          ]
+        }
+      },
+      "price": {
+        "status": "known",
+        "value": {
+          "kind": "money",
+          "value": {
+            "currency": "RUB",
+            "minor": 2290000
+          }
+        },
+        "evidence": [
+          {
+            "kind": "source",
+            "source_id": "public-ort-base300",
+            "locator": "selectedOfferId=5055; OFFERS[ID=5055].ITEM_PRICES[0].PRICE; facts.json#/selected_offer/price_rub",
+            "observed_at": "2026-09-30T00:52:13.252349Z"
+          }
+        ]
+      },
+      "price_kind": "exact",
+      "delivery": {
+        "mode": "unknown",
+        "charge": {
+          "status": "unknown",
+          "value": null,
+          "reason_code": "order_and_region_delivery_quote_required",
+          "evidence": [
+            {
+              "kind": "source",
+              "source_id": "public-ort-base300",
+              "locator": "Delivery conditions are not verified for this order/region",
+              "observed_at": "2026-09-30T00:52:13.252349Z"
+            }
+          ]
+        },
+        "terms": {
+          "status": "unknown",
+          "value": null,
+          "reason_code": "order_and_region_delivery_terms_required",
+          "evidence": [
+            {
+              "kind": "source",
+              "source_id": "public-ort-base300",
+              "locator": "No exact delivery terms bound to selected SKU/order",
+              "observed_at": "2026-09-30T00:52:13.252349Z"
+            }
+          ]
+        }
+      },
+      "accepts_certificate": {
+        "status": "unknown",
+        "value": null,
+        "reason_code": "exact_sku_checkout_acceptance_not_verified",
+        "evidence": [
+          {
+            "kind": "source",
+            "source_id": "public-ort-base300",
+            "locator": "Product card: certificate-payment button/service, not verified checkout",
+            "observed_at": "2026-09-30T00:52:13.252349Z"
+          }
+        ]
+      },
+      "has_fund_contract": {
+        "status": "unknown",
+        "value": null,
+        "reason_code": "no_public_offer_specific_fund_contract_evidence",
+        "evidence": [
+          {
+            "kind": "source",
+            "source_id": "public-ort-base300",
+            "locator": "No fund-contract evidence on captured product page",
+            "observed_at": "2026-09-30T00:52:13.252349Z"
+          }
+        ]
+      },
+      "availability": {
+        "status": "known",
+        "value": {
+          "kind": "code",
+          "value": "in_stock"
+        },
+        "evidence": [
+          {
+            "kind": "source",
+            "source_id": "public-ort-base300",
+            "locator": "OFFERS[ID=5055].CAN_BUY/MAX_QUANTITY; product availability label",
+            "observed_at": "2026-09-30T00:52:13.252349Z"
+          }
+        ]
+      },
+      "source_ids": [
+        "public-ort-base300"
+      ]
+    },
+    {
+      "snapshot_id": "09dde829-01f2-5eba-92a3-7bd4b1e2a508",
+      "offer_id": "ortonica:4686",
+      "supplier_id": "ortonica",
+      "seller_sku": "4686",
+      "variant": {
+        "variant_id": "ortonica:4686",
+        "category_id": "manual_wheelchair",
+        "manufacturer": "ORTONICA",
+        "model": "Base 350",
+        "modification": "Base 350 (43)",
+        "configuration": "Выбранное предложение 4686: сиденье 43 см; тип колес «Литые/пневматические»; опубликованные артикулы 00031214."
+      },
+      "profile_ref": {
+        "id": "manual-wheelchair-technical",
+        "version": "1.1.0"
+      },
+      "data_kind": "public_snapshot",
+      "observed_at": "2026-09-30T00:52:13.470205Z",
+      "review": {
+        "status": "reviewed",
+        "reviewer_id": "codex-root-public-fact-audit",
+        "reviewed_at": "2026-09-30T01:10:11.200322Z",
+        "review_due_at": "2026-10-07T01:10:11.200322Z"
+      },
+      "attributes": {
+        "seat_width": {
+          "status": "known",
+          "value": {
+            "kind": "quantity",
+            "value": "430",
+            "unit": "mm"
+          },
+          "evidence": [
+            {
+              "kind": "source",
+              "source_id": "public-ort-base350",
+              "locator": "selected SKU4686: seat_width_cm=43; exact decimal cm×10",
+              "observed_at": "2026-09-30T00:52:13.470205Z"
+            }
+          ]
+        },
+        "max_user_mass": {
+          "status": "known",
+          "value": {
+            "kind": "quantity",
+            "value": "130",
+            "unit": "kg"
+          },
+          "evidence": [
+            {
+              "kind": "source",
+              "source_id": "public-ort-base350",
+              "locator": "selected SKU4686: Грузоподъемность/Максимальная нагрузка, кг=130",
+              "observed_at": "2026-09-30T00:52:13.470205Z"
+            }
+          ]
+        },
+        "foldable": {
+          "status": "known",
+          "value": {
+            "kind": "boolean",
+            "value": true
+          },
+          "evidence": [
+            {
+              "kind": "source",
+              "source_id": "public-ort-base350",
+              "locator": "Технические характеристики: Механизм складывания=Ножницы",
+              "observed_at": "2026-09-30T00:52:13.470205Z"
+            }
+          ]
+        }
+      },
+      "price": {
+        "status": "known",
+        "value": {
+          "kind": "money",
+          "value": {
+            "currency": "RUB",
+            "minor": 2370000
+          }
+        },
+        "evidence": [
+          {
+            "kind": "source",
+            "source_id": "public-ort-base350",
+            "locator": "selectedOfferId=4686; OFFERS[ID=4686].ITEM_PRICES[0].PRICE; facts.json#/selected_offer/price_rub",
+            "observed_at": "2026-09-30T00:52:13.470205Z"
+          }
+        ]
+      },
+      "price_kind": "exact",
+      "delivery": {
+        "mode": "unknown",
+        "charge": {
+          "status": "unknown",
+          "value": null,
+          "reason_code": "order_and_region_delivery_quote_required",
+          "evidence": [
+            {
+              "kind": "source",
+              "source_id": "public-ort-base350",
+              "locator": "Delivery conditions are not verified for this order/region",
+              "observed_at": "2026-09-30T00:52:13.470205Z"
+            }
+          ]
+        },
+        "terms": {
+          "status": "unknown",
+          "value": null,
+          "reason_code": "order_and_region_delivery_terms_required",
+          "evidence": [
+            {
+              "kind": "source",
+              "source_id": "public-ort-base350",
+              "locator": "No exact delivery terms bound to selected SKU/order",
+              "observed_at": "2026-09-30T00:52:13.470205Z"
+            }
+          ]
+        }
+      },
+      "accepts_certificate": {
+        "status": "unknown",
+        "value": null,
+        "reason_code": "exact_sku_checkout_acceptance_not_verified",
+        "evidence": [
+          {
+            "kind": "source",
+            "source_id": "public-ort-base350",
+            "locator": "Product card: certificate-payment button/service, not verified checkout",
+            "observed_at": "2026-09-30T00:52:13.470205Z"
+          }
+        ]
+      },
+      "has_fund_contract": {
+        "status": "unknown",
+        "value": null,
+        "reason_code": "no_public_offer_specific_fund_contract_evidence",
+        "evidence": [
+          {
+            "kind": "source",
+            "source_id": "public-ort-base350",
+            "locator": "No fund-contract evidence on captured product page",
+            "observed_at": "2026-09-30T00:52:13.470205Z"
+          }
+        ]
+      },
+      "availability": {
+        "status": "known",
+        "value": {
+          "kind": "code",
+          "value": "in_stock"
+        },
+        "evidence": [
+          {
+            "kind": "source",
+            "source_id": "public-ort-base350",
+            "locator": "OFFERS[ID=4686].CAN_BUY/MAX_QUANTITY; product availability label",
+            "observed_at": "2026-09-30T00:52:13.470205Z"
+          }
+        ]
+      },
+      "source_ids": [
+        "public-ort-base350"
+      ]
+    },
+    {
+      "snapshot_id": "ab3e7c5d-e106-5326-8867-eb21457fb49e",
+      "offer_id": "medicamarket:00-00046407",
+      "supplier_id": "medicamarket",
+      "seller_sku": "00-00046407",
+      "variant": {
+        "variant_id": "medicamarket:00-00046407",
+        "category_id": "manual_wheelchair",
+        "manufacturer": "ORTONICA",
+        "model": "Base 200",
+        "modification": "Base 200: код товара 00-00046407",
+        "configuration": "Код товара 00-00046407; сиденье 50,5 см; в таблице шины «пневмо». Заголовок указывает цельно-литые шины, таблица — пневмо; тип шин неизвестен из-за конфликта."
+      },
+      "profile_ref": {
+        "id": "manual-wheelchair-technical",
+        "version": "1.1.0"
+      },
+      "data_kind": "public_snapshot",
+      "observed_at": "2026-09-30T00:50:50.995500Z",
+      "review": {
+        "status": "reviewed",
+        "reviewer_id": "codex-root-public-fact-audit",
+        "reviewed_at": "2026-09-30T01:10:11.200322Z",
+        "review_due_at": "2026-10-07T01:10:11.200322Z"
+      },
+      "attributes": {
+        "seat_width": {
+          "status": "known",
+          "value": {
+            "kind": "quantity",
+            "value": "505",
+            "unit": "mm"
+          },
+          "evidence": [
+            {
+              "kind": "source",
+              "source_id": "public-med-base200",
+              "locator": "selected SKU00-00046407: seat_width_cm=50,5; exact decimal cm×10",
+              "observed_at": "2026-09-30T00:50:50.995500Z"
+            }
+          ]
+        },
+        "max_user_mass": {
+          "status": "known",
+          "value": {
+            "kind": "quantity",
+            "value": "130",
+            "unit": "kg"
+          },
+          "evidence": [
+            {
+              "kind": "source",
+              "source_id": "public-med-base200",
+              "locator": "selected SKU00-00046407: Грузоподъемность/Максимальная нагрузка, кг=130",
+              "observed_at": "2026-09-30T00:50:50.995500Z"
+            }
+          ]
+        },
+        "foldable": {
+          "status": "known",
+          "value": {
+            "kind": "boolean",
+            "value": true
+          },
+          "evidence": [
+            {
+              "kind": "source",
+              "source_id": "public-med-base200",
+              "locator": "Product.sku=00-00046407; additionalProperty Тип рамы=складная",
+              "observed_at": "2026-09-30T00:50:50.995500Z"
+            }
+          ]
+        }
+      },
+      "price": {
+        "status": "known",
+        "value": {
+          "kind": "money",
+          "value": {
+            "currency": "RUB",
+            "minor": 1672400
+          }
+        },
+        "evidence": [
+          {
+            "kind": "source",
+            "source_id": "public-med-base200",
+            "locator": "SEO title «по цене от»; displayed/offer price; lower bound only",
+            "observed_at": "2026-09-30T00:50:50.995500Z"
+          }
+        ]
+      },
+      "price_kind": "from",
+      "delivery": {
+        "mode": "unknown",
+        "charge": {
+          "status": "unknown",
+          "value": null,
+          "reason_code": "order_and_region_delivery_quote_required",
+          "evidence": [
+            {
+              "kind": "source",
+              "source_id": "public-med-base200",
+              "locator": "Delivery conditions are not verified for this order/region",
+              "observed_at": "2026-09-30T00:50:50.995500Z"
+            }
+          ]
+        },
+        "terms": {
+          "status": "unknown",
+          "value": null,
+          "reason_code": "order_and_region_delivery_terms_required",
+          "evidence": [
+            {
+              "kind": "source",
+              "source_id": "public-med-base200",
+              "locator": "No exact delivery terms bound to selected SKU/order",
+              "observed_at": "2026-09-30T00:50:50.995500Z"
+            }
+          ]
+        }
+      },
+      "accepts_certificate": {
+        "status": "unknown",
+        "value": null,
+        "reason_code": "exact_sku_checkout_acceptance_not_verified",
+        "evidence": [
+          {
+            "kind": "source",
+            "source_id": "public-med-base200",
+            "locator": "Product card: certificate-payment button/service, not verified checkout",
+            "observed_at": "2026-09-30T00:50:50.995500Z"
+          }
+        ]
+      },
+      "has_fund_contract": {
+        "status": "unknown",
+        "value": null,
+        "reason_code": "no_public_offer_specific_fund_contract_evidence",
+        "evidence": [
+          {
+            "kind": "source",
+            "source_id": "public-med-base200",
+            "locator": "No fund-contract evidence on captured product page",
+            "observed_at": "2026-09-30T00:50:50.995500Z"
+          }
+        ]
+      },
+      "availability": {
+        "status": "known",
+        "value": {
+          "kind": "code",
+          "value": "in_stock"
+        },
+        "evidence": [
+          {
+            "kind": "source",
+            "source_id": "public-med-base200",
+            "locator": "JSON-LD Product.offers.availability=InStock; selected sku",
+            "observed_at": "2026-09-30T00:50:50.995500Z"
+          }
+        ]
+      },
+      "source_ids": [
+        "public-med-base200"
+      ]
+    },
+    {
+      "snapshot_id": "4dc6238e-4ebf-532e-bd8a-5f7b83dd4762",
+      "offer_id": "medicamarket:00-00048577",
+      "supplier_id": "medicamarket",
+      "seller_sku": "00-00048577",
+      "variant": {
+        "variant_id": "medicamarket:00-00048577",
+        "category_id": "manual_wheelchair",
+        "manufacturer": "ORTONICA",
+        "model": "Base 300",
+        "modification": "Base 300: код товара 00-00048577",
+        "configuration": "Код товара 00-00048577; сиденье 45,5 см; в таблице шины «пневмо»."
+      },
+      "profile_ref": {
+        "id": "manual-wheelchair-technical",
+        "version": "1.1.0"
+      },
+      "data_kind": "public_snapshot",
+      "observed_at": "2026-09-30T00:51:05.129175Z",
+      "review": {
+        "status": "reviewed",
+        "reviewer_id": "codex-root-public-fact-audit",
+        "reviewed_at": "2026-09-30T01:10:11.200322Z",
+        "review_due_at": "2026-10-07T01:10:11.200322Z"
+      },
+      "attributes": {
+        "seat_width": {
+          "status": "known",
+          "value": {
+            "kind": "quantity",
+            "value": "455",
+            "unit": "mm"
+          },
+          "evidence": [
+            {
+              "kind": "source",
+              "source_id": "public-med-base300",
+              "locator": "selected SKU00-00048577: seat_width_cm=45,5; exact decimal cm×10",
+              "observed_at": "2026-09-30T00:51:05.129175Z"
+            }
+          ]
+        },
+        "max_user_mass": {
+          "status": "known",
+          "value": {
+            "kind": "quantity",
+            "value": "130",
+            "unit": "kg"
+          },
+          "evidence": [
+            {
+              "kind": "source",
+              "source_id": "public-med-base300",
+              "locator": "selected SKU00-00048577: Грузоподъемность/Максимальная нагрузка, кг=130",
+              "observed_at": "2026-09-30T00:51:05.129175Z"
+            }
+          ]
+        },
+        "foldable": {
+          "status": "known",
+          "value": {
+            "kind": "boolean",
+            "value": true
+          },
+          "evidence": [
+            {
+              "kind": "source",
+              "source_id": "public-med-base300",
+              "locator": "Product.sku=00-00048577; additionalProperty Тип рамы=складная",
+              "observed_at": "2026-09-30T00:51:05.129175Z"
+            }
+          ]
+        }
+      },
+      "price": {
+        "status": "known",
+        "value": {
+          "kind": "money",
+          "value": {
+            "currency": "RUB",
+            "minor": 2004600
+          }
+        },
+        "evidence": [
+          {
+            "kind": "source",
+            "source_id": "public-med-base300",
+            "locator": "Product.sku=00-00048577; offers.price=20046; displayed price=20046; H1=pneumatic45.5cm",
+            "observed_at": "2026-09-30T00:51:05.129175Z"
+          }
+        ]
+      },
+      "price_kind": "exact",
+      "delivery": {
+        "mode": "unknown",
+        "charge": {
+          "status": "unknown",
+          "value": null,
+          "reason_code": "order_and_region_delivery_quote_required",
+          "evidence": [
+            {
+              "kind": "source",
+              "source_id": "public-med-base300",
+              "locator": "Delivery conditions are not verified for this order/region",
+              "observed_at": "2026-09-30T00:51:05.129175Z"
+            }
+          ]
+        },
+        "terms": {
+          "status": "unknown",
+          "value": null,
+          "reason_code": "order_and_region_delivery_terms_required",
+          "evidence": [
+            {
+              "kind": "source",
+              "source_id": "public-med-base300",
+              "locator": "No exact delivery terms bound to selected SKU/order",
+              "observed_at": "2026-09-30T00:51:05.129175Z"
+            }
+          ]
+        }
+      },
+      "accepts_certificate": {
+        "status": "unknown",
+        "value": null,
+        "reason_code": "exact_sku_checkout_acceptance_not_verified",
+        "evidence": [
+          {
+            "kind": "source",
+            "source_id": "public-med-base300",
+            "locator": "Product card: certificate-payment button/service, not verified checkout",
+            "observed_at": "2026-09-30T00:51:05.129175Z"
+          }
+        ]
+      },
+      "has_fund_contract": {
+        "status": "unknown",
+        "value": null,
+        "reason_code": "no_public_offer_specific_fund_contract_evidence",
+        "evidence": [
+          {
+            "kind": "source",
+            "source_id": "public-med-base300",
+            "locator": "No fund-contract evidence on captured product page",
+            "observed_at": "2026-09-30T00:51:05.129175Z"
+          }
+        ]
+      },
+      "availability": {
+        "status": "known",
+        "value": {
+          "kind": "code",
+          "value": "in_stock"
+        },
+        "evidence": [
+          {
+            "kind": "source",
+            "source_id": "public-med-base300",
+            "locator": "JSON-LD Product.offers.availability=InStock; selected sku",
+            "observed_at": "2026-09-30T00:51:05.129175Z"
+          }
+        ]
+      },
+      "source_ids": [
+        "public-med-base300"
+      ]
+    },
+    {
+      "snapshot_id": "9a654fcd-ca6a-58d5-a8dc-5823c14160de",
+      "offer_id": "medicamarket:00-00048705",
+      "supplier_id": "medicamarket",
+      "seller_sku": "00-00048705",
+      "variant": {
+        "variant_id": "medicamarket:00-00048705",
+        "category_id": "manual_wheelchair",
+        "manufacturer": "ORTONICA",
+        "model": "Base 350",
+        "modification": "Base 350: код товара 00-00048705",
+        "configuration": "Код товара 00-00048705; сиденье 45,5 см; в таблице шины «пневмо»."
+      },
+      "profile_ref": {
+        "id": "manual-wheelchair-technical",
+        "version": "1.1.0"
+      },
+      "data_kind": "public_snapshot",
+      "observed_at": "2026-09-30T00:50:51.418752Z",
+      "review": {
+        "status": "reviewed",
+        "reviewer_id": "codex-root-public-fact-audit",
+        "reviewed_at": "2026-09-30T01:10:11.200322Z",
+        "review_due_at": "2026-10-07T01:10:11.200322Z"
+      },
+      "attributes": {
+        "seat_width": {
+          "status": "known",
+          "value": {
+            "kind": "quantity",
+            "value": "455",
+            "unit": "mm"
+          },
+          "evidence": [
+            {
+              "kind": "source",
+              "source_id": "public-med-base350",
+              "locator": "selected SKU00-00048705: seat_width_cm=45,5; exact decimal cm×10",
+              "observed_at": "2026-09-30T00:50:51.418752Z"
+            }
+          ]
+        },
+        "max_user_mass": {
+          "status": "known",
+          "value": {
+            "kind": "quantity",
+            "value": "130",
+            "unit": "kg"
+          },
+          "evidence": [
+            {
+              "kind": "source",
+              "source_id": "public-med-base350",
+              "locator": "selected SKU00-00048705: Грузоподъемность/Максимальная нагрузка, кг=130",
+              "observed_at": "2026-09-30T00:50:51.418752Z"
+            }
+          ]
+        },
+        "foldable": {
+          "status": "known",
+          "value": {
+            "kind": "boolean",
+            "value": true
+          },
+          "evidence": [
+            {
+              "kind": "source",
+              "source_id": "public-med-base350",
+              "locator": "Product.sku=00-00048705; additionalProperty Тип рамы=складная",
+              "observed_at": "2026-09-30T00:50:51.418752Z"
+            }
+          ]
+        }
+      },
+      "price": {
+        "status": "known",
+        "value": {
+          "kind": "money",
+          "value": {
+            "currency": "RUB",
+            "minor": 2098800
+          }
+        },
+        "evidence": [
+          {
+            "kind": "source",
+            "source_id": "public-med-base350",
+            "locator": "SEO title «по цене от»; displayed/offer price; lower bound only",
+            "observed_at": "2026-09-30T00:50:51.418752Z"
+          }
+        ]
+      },
+      "price_kind": "from",
+      "delivery": {
+        "mode": "unknown",
+        "charge": {
+          "status": "unknown",
+          "value": null,
+          "reason_code": "order_and_region_delivery_quote_required",
+          "evidence": [
+            {
+              "kind": "source",
+              "source_id": "public-med-base350",
+              "locator": "Delivery conditions are not verified for this order/region",
+              "observed_at": "2026-09-30T00:50:51.418752Z"
+            }
+          ]
+        },
+        "terms": {
+          "status": "unknown",
+          "value": null,
+          "reason_code": "order_and_region_delivery_terms_required",
+          "evidence": [
+            {
+              "kind": "source",
+              "source_id": "public-med-base350",
+              "locator": "No exact delivery terms bound to selected SKU/order",
+              "observed_at": "2026-09-30T00:50:51.418752Z"
+            }
+          ]
+        }
+      },
+      "accepts_certificate": {
+        "status": "unknown",
+        "value": null,
+        "reason_code": "exact_sku_checkout_acceptance_not_verified",
+        "evidence": [
+          {
+            "kind": "source",
+            "source_id": "public-med-base350",
+            "locator": "Product card: certificate-payment button/service, not verified checkout",
+            "observed_at": "2026-09-30T00:50:51.418752Z"
+          }
+        ]
+      },
+      "has_fund_contract": {
+        "status": "unknown",
+        "value": null,
+        "reason_code": "no_public_offer_specific_fund_contract_evidence",
+        "evidence": [
+          {
+            "kind": "source",
+            "source_id": "public-med-base350",
+            "locator": "No fund-contract evidence on captured product page",
+            "observed_at": "2026-09-30T00:50:51.418752Z"
+          }
+        ]
+      },
+      "availability": {
+        "status": "known",
+        "value": {
+          "kind": "code",
+          "value": "on_order"
+        },
+        "evidence": [
+          {
+            "kind": "source",
+            "source_id": "public-med-base350",
+            "locator": "JSON-LD Product.offers.availability=PreOrder; selected sku",
+            "observed_at": "2026-09-30T00:50:51.418752Z"
+          }
+        ]
+      },
+      "source_ids": [
+        "public-med-base350"
+      ]
+    },
+    {
+      "snapshot_id": "04cd67ff-6b4f-56fd-b730-9bd322963251",
+      "offer_id": "medicamarket:00-00048697",
+      "supplier_id": "medicamarket",
+      "seller_sku": "00-00048697",
+      "variant": {
+        "variant_id": "medicamarket:00-00048697",
+        "category_id": "manual_wheelchair",
+        "manufacturer": "ORTONICA",
+        "model": "Base 400",
+        "modification": "Base 400: код товара 00-00048697",
+        "configuration": "Код товара 00-00048697; сиденье 40,5 см; в таблице шины «пневмо»."
+      },
+      "profile_ref": {
+        "id": "manual-wheelchair-technical",
+        "version": "1.1.0"
+      },
+      "data_kind": "public_snapshot",
+      "observed_at": "2026-09-30T00:50:51.872514Z",
+      "review": {
+        "status": "reviewed",
+        "reviewer_id": "codex-root-public-fact-audit",
+        "reviewed_at": "2026-09-30T01:10:11.200322Z",
+        "review_due_at": "2026-10-07T01:10:11.200322Z"
+      },
+      "attributes": {
+        "seat_width": {
+          "status": "known",
+          "value": {
+            "kind": "quantity",
+            "value": "405",
+            "unit": "mm"
+          },
+          "evidence": [
+            {
+              "kind": "source",
+              "source_id": "public-med-base400",
+              "locator": "selected SKU00-00048697: seat_width_cm=40,5; exact decimal cm×10",
+              "observed_at": "2026-09-30T00:50:51.872514Z"
+            }
+          ]
+        },
+        "max_user_mass": {
+          "status": "known",
+          "value": {
+            "kind": "quantity",
+            "value": "130",
+            "unit": "kg"
+          },
+          "evidence": [
+            {
+              "kind": "source",
+              "source_id": "public-med-base400",
+              "locator": "selected SKU00-00048697: Грузоподъемность/Максимальная нагрузка, кг=130",
+              "observed_at": "2026-09-30T00:50:51.872514Z"
+            }
+          ]
+        },
+        "foldable": {
+          "status": "known",
+          "value": {
+            "kind": "boolean",
+            "value": true
+          },
+          "evidence": [
+            {
+              "kind": "source",
+              "source_id": "public-med-base400",
+              "locator": "Product.sku=00-00048697; additionalProperty Тип рамы=складная",
+              "observed_at": "2026-09-30T00:50:51.872514Z"
+            }
+          ]
+        }
+      },
+      "price": {
+        "status": "known",
+        "value": {
+          "kind": "money",
+          "value": {
+            "currency": "RUB",
+            "minor": 2362800
+          }
+        },
+        "evidence": [
+          {
+            "kind": "source",
+            "source_id": "public-med-base400",
+            "locator": "SEO title «по цене от»; displayed/offer price; lower bound only",
+            "observed_at": "2026-09-30T00:50:51.872514Z"
+          }
+        ]
+      },
+      "price_kind": "from",
+      "delivery": {
+        "mode": "unknown",
+        "charge": {
+          "status": "unknown",
+          "value": null,
+          "reason_code": "order_and_region_delivery_quote_required",
+          "evidence": [
+            {
+              "kind": "source",
+              "source_id": "public-med-base400",
+              "locator": "Delivery conditions are not verified for this order/region",
+              "observed_at": "2026-09-30T00:50:51.872514Z"
+            }
+          ]
+        },
+        "terms": {
+          "status": "unknown",
+          "value": null,
+          "reason_code": "order_and_region_delivery_terms_required",
+          "evidence": [
+            {
+              "kind": "source",
+              "source_id": "public-med-base400",
+              "locator": "No exact delivery terms bound to selected SKU/order",
+              "observed_at": "2026-09-30T00:50:51.872514Z"
+            }
+          ]
+        }
+      },
+      "accepts_certificate": {
+        "status": "unknown",
+        "value": null,
+        "reason_code": "exact_sku_checkout_acceptance_not_verified",
+        "evidence": [
+          {
+            "kind": "source",
+            "source_id": "public-med-base400",
+            "locator": "Product card: certificate-payment button/service, not verified checkout",
+            "observed_at": "2026-09-30T00:50:51.872514Z"
+          }
+        ]
+      },
+      "has_fund_contract": {
+        "status": "unknown",
+        "value": null,
+        "reason_code": "no_public_offer_specific_fund_contract_evidence",
+        "evidence": [
+          {
+            "kind": "source",
+            "source_id": "public-med-base400",
+            "locator": "No fund-contract evidence on captured product page",
+            "observed_at": "2026-09-30T00:50:51.872514Z"
+          }
+        ]
+      },
+      "availability": {
+        "status": "known",
+        "value": {
+          "kind": "code",
+          "value": "on_order"
+        },
+        "evidence": [
+          {
+            "kind": "source",
+            "source_id": "public-med-base400",
+            "locator": "JSON-LD Product.offers.availability=PreOrder; selected sku",
+            "observed_at": "2026-09-30T00:50:51.872514Z"
+          }
+        ]
+      },
+      "source_ids": [
+        "public-med-base400"
+      ]
+    },
+    {
+      "snapshot_id": "a2533d3f-271b-5680-9e22-ef48465af260",
+      "offer_id": "medicamarket:00-00048067",
+      "supplier_id": "medicamarket",
+      "seller_sku": "00-00048067",
+      "variant": {
+        "variant_id": "medicamarket:00-00048067",
+        "category_id": "manual_wheelchair",
+        "manufacturer": "ORTONICA",
+        "model": "Base Lite 350",
+        "modification": "Base Lite 350: код товара 00-00048067",
+        "configuration": "Код товара 00-00048067; сиденье 45,5 см; в таблице шины «литые»."
+      },
+      "profile_ref": {
+        "id": "manual-wheelchair-technical",
+        "version": "1.1.0"
+      },
+      "data_kind": "public_snapshot",
+      "observed_at": "2026-09-30T00:51:02.657269Z",
+      "review": {
+        "status": "reviewed",
+        "reviewer_id": "codex-root-public-fact-audit",
+        "reviewed_at": "2026-09-30T01:10:11.200322Z",
+        "review_due_at": "2026-10-07T01:10:11.200322Z"
+      },
+      "attributes": {
+        "seat_width": {
+          "status": "known",
+          "value": {
+            "kind": "quantity",
+            "value": "455",
+            "unit": "mm"
+          },
+          "evidence": [
+            {
+              "kind": "source",
+              "source_id": "public-med-baselite350",
+              "locator": "selected SKU00-00048067: seat_width_cm=45,5; exact decimal cm×10",
+              "observed_at": "2026-09-30T00:51:02.657269Z"
+            }
+          ]
+        },
+        "max_user_mass": {
+          "status": "known",
+          "value": {
+            "kind": "quantity",
+            "value": "130",
+            "unit": "kg"
+          },
+          "evidence": [
+            {
+              "kind": "source",
+              "source_id": "public-med-baselite350",
+              "locator": "selected SKU00-00048067: Грузоподъемность/Максимальная нагрузка, кг=130",
+              "observed_at": "2026-09-30T00:51:02.657269Z"
+            }
+          ]
+        },
+        "foldable": {
+          "status": "known",
+          "value": {
+            "kind": "boolean",
+            "value": true
+          },
+          "evidence": [
+            {
+              "kind": "source",
+              "source_id": "public-med-baselite350",
+              "locator": "Product.sku=00-00048067; additionalProperty Тип рамы=складная",
+              "observed_at": "2026-09-30T00:51:02.657269Z"
+            }
+          ]
+        }
+      },
+      "price": {
+        "status": "known",
+        "value": {
+          "kind": "money",
+          "value": {
+            "currency": "RUB",
+            "minor": 2998600
+          }
+        },
+        "evidence": [
+          {
+            "kind": "source",
+            "source_id": "public-med-baselite350",
+            "locator": "SEO title «по цене от»; displayed/offer price; lower bound only",
+            "observed_at": "2026-09-30T00:51:02.657269Z"
+          }
+        ]
+      },
+      "price_kind": "from",
+      "delivery": {
+        "mode": "unknown",
+        "charge": {
+          "status": "unknown",
+          "value": null,
+          "reason_code": "order_and_region_delivery_quote_required",
+          "evidence": [
+            {
+              "kind": "source",
+              "source_id": "public-med-baselite350",
+              "locator": "Delivery conditions are not verified for this order/region",
+              "observed_at": "2026-09-30T00:51:02.657269Z"
+            }
+          ]
+        },
+        "terms": {
+          "status": "unknown",
+          "value": null,
+          "reason_code": "order_and_region_delivery_terms_required",
+          "evidence": [
+            {
+              "kind": "source",
+              "source_id": "public-med-baselite350",
+              "locator": "No exact delivery terms bound to selected SKU/order",
+              "observed_at": "2026-09-30T00:51:02.657269Z"
+            }
+          ]
+        }
+      },
+      "accepts_certificate": {
+        "status": "unknown",
+        "value": null,
+        "reason_code": "exact_sku_checkout_acceptance_not_verified",
+        "evidence": [
+          {
+            "kind": "source",
+            "source_id": "public-med-baselite350",
+            "locator": "Product card: certificate-payment button/service, not verified checkout",
+            "observed_at": "2026-09-30T00:51:02.657269Z"
+          }
+        ]
+      },
+      "has_fund_contract": {
+        "status": "unknown",
+        "value": null,
+        "reason_code": "no_public_offer_specific_fund_contract_evidence",
+        "evidence": [
+          {
+            "kind": "source",
+            "source_id": "public-med-baselite350",
+            "locator": "No fund-contract evidence on captured product page",
+            "observed_at": "2026-09-30T00:51:02.657269Z"
+          }
+        ]
+      },
+      "availability": {
+        "status": "conflicting",
+        "value": null,
+        "alternatives": [
+          {
+            "status": "known",
+            "value": {
+              "kind": "code",
+              "value": "out_of_stock"
+            },
+            "evidence": [
+              {
+                "kind": "source",
+                "source_id": "public-med-baselite350",
+                "locator": "Верхняя карточка: нет в наличии",
+                "observed_at": "2026-09-30T00:51:02.657269Z"
+              }
+            ]
+          },
+          {
+            "status": "known",
+            "value": {
+              "kind": "code",
+              "value": "on_order"
+            },
+            "evidence": [
+              {
+                "kind": "source",
+                "source_id": "public-med-baselite350",
+                "locator": "JSON-LD Product.offers.availability=PreOrder",
+                "observed_at": "2026-09-30T00:51:02.657269Z"
+              }
+            ]
+          }
+        ],
+        "reason_code": "visible_and_structured_availability_conflict",
+        "evidence": []
+      },
+      "source_ids": [
+        "public-med-baselite350"
+      ]
+    },
+    {
+      "snapshot_id": "a07827ab-e8e2-51d1-9165-24c06c7bc9fe",
+      "offer_id": "medicamarket:00-00048055",
+      "supplier_id": "medicamarket",
+      "seller_sku": "00-00048055",
+      "variant": {
+        "variant_id": "medicamarket:00-00048055",
+        "category_id": "manual_wheelchair",
+        "manufacturer": "ORTONICA",
+        "model": "Base Lite 300",
+        "modification": "Base Lite 300: код товара 00-00048055",
+        "configuration": "Код товара 00-00048055; сиденье 43 см; в таблице шины «литые». Комплектация по таблице; заголовок не уточняет шины. Цена требует проверки."
+      },
+      "profile_ref": {
+        "id": "manual-wheelchair-technical",
+        "version": "1.1.0"
+      },
+      "data_kind": "public_snapshot",
+      "observed_at": "2026-09-30T00:54:20.459565Z",
+      "review": {
+        "status": "reviewed",
+        "reviewer_id": "codex-root-public-fact-audit",
+        "reviewed_at": "2026-09-30T01:10:11.200322Z",
+        "review_due_at": "2026-10-07T01:10:11.200322Z"
+      },
+      "attributes": {
+        "seat_width": {
+          "status": "known",
+          "value": {
+            "kind": "quantity",
+            "value": "430",
+            "unit": "mm"
+          },
+          "evidence": [
+            {
+              "kind": "source",
+              "source_id": "public-med-baselite300",
+              "locator": "selected SKU00-00048055: seat_width_cm=43; exact decimal cm×10",
+              "observed_at": "2026-09-30T00:54:20.459565Z"
+            }
+          ]
+        },
+        "max_user_mass": {
+          "status": "known",
+          "value": {
+            "kind": "quantity",
+            "value": "130",
+            "unit": "kg"
+          },
+          "evidence": [
+            {
+              "kind": "source",
+              "source_id": "public-med-baselite300",
+              "locator": "selected SKU00-00048055: Грузоподъемность/Максимальная нагрузка, кг=130",
+              "observed_at": "2026-09-30T00:54:20.459565Z"
+            }
+          ]
+        },
+        "foldable": {
+          "status": "known",
+          "value": {
+            "kind": "boolean",
+            "value": true
+          },
+          "evidence": [
+            {
+              "kind": "source",
+              "source_id": "public-med-baselite300",
+              "locator": "Product.sku=00-00048055; additionalProperty Тип рамы=складная",
+              "observed_at": "2026-09-30T00:54:20.459565Z"
+            }
+          ]
+        }
+      },
+      "price": {
+        "status": "conflicting",
+        "value": null,
+        "alternatives": [
+          {
+            "status": "known",
+            "value": {
+              "kind": "money",
+              "value": {
+                "currency": "RUB",
+                "minor": 3314100
+              }
+            },
+            "evidence": [
+              {
+                "kind": "source",
+                "source_id": "public-med-baselite300",
+                "locator": "Видимая цена карточки и SEO title",
+                "observed_at": "2026-09-30T00:54:20.459565Z"
+              }
+            ]
+          },
+          {
+            "status": "known",
+            "value": {
+              "kind": "money",
+              "value": {
+                "currency": "RUB",
+                "minor": 3195700
+              }
+            },
+            "evidence": [
+              {
+                "kind": "source",
+                "source_id": "public-med-baselite300",
+                "locator": "JSON-LD Product.offers.price",
+                "observed_at": "2026-09-30T00:54:20.459565Z"
+              }
+            ]
+          }
+        ],
+        "reason_code": "visible_and_structured_price_conflict",
+        "evidence": []
+      },
+      "price_kind": "unknown",
+      "delivery": {
+        "mode": "unknown",
+        "charge": {
+          "status": "unknown",
+          "value": null,
+          "reason_code": "order_and_region_delivery_quote_required",
+          "evidence": [
+            {
+              "kind": "source",
+              "source_id": "public-med-baselite300",
+              "locator": "Delivery conditions are not verified for this order/region",
+              "observed_at": "2026-09-30T00:54:20.459565Z"
+            }
+          ]
+        },
+        "terms": {
+          "status": "unknown",
+          "value": null,
+          "reason_code": "order_and_region_delivery_terms_required",
+          "evidence": [
+            {
+              "kind": "source",
+              "source_id": "public-med-baselite300",
+              "locator": "No exact delivery terms bound to selected SKU/order",
+              "observed_at": "2026-09-30T00:54:20.459565Z"
+            }
+          ]
+        }
+      },
+      "accepts_certificate": {
+        "status": "unknown",
+        "value": null,
+        "reason_code": "exact_sku_checkout_acceptance_not_verified",
+        "evidence": [
+          {
+            "kind": "source",
+            "source_id": "public-med-baselite300",
+            "locator": "Product card: certificate-payment button/service, not verified checkout",
+            "observed_at": "2026-09-30T00:54:20.459565Z"
+          }
+        ]
+      },
+      "has_fund_contract": {
+        "status": "unknown",
+        "value": null,
+        "reason_code": "no_public_offer_specific_fund_contract_evidence",
+        "evidence": [
+          {
+            "kind": "source",
+            "source_id": "public-med-baselite300",
+            "locator": "No fund-contract evidence on captured product page",
+            "observed_at": "2026-09-30T00:54:20.459565Z"
+          }
+        ]
+      },
+      "availability": {
+        "status": "known",
+        "value": {
+          "kind": "code",
+          "value": "on_order"
+        },
+        "evidence": [
+          {
+            "kind": "source",
+            "source_id": "public-med-baselite300",
+            "locator": "JSON-LD Product.offers.availability=PreOrder; selected sku",
+            "observed_at": "2026-09-30T00:54:20.459565Z"
+          }
+        ]
+      },
+      "source_ids": [
+        "public-med-baselite300"
+      ]
+    }
+  ]
+}

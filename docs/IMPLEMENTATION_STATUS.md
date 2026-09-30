@@ -1,36 +1,72 @@
-# Статус первой реализации
+# Статус реализации после повторной проверки
 
-Основание: `docs/specs/CONTRACTS_v1.md`, `IMPLEMENTATION_PLAN_v1.md`, `MVP_DATA_TASKS_v1.md`. ARCHITECTURE_v1.md отдельно не приложен; использовано архитектурное решение, зафиксированное в предоставленном плане. Исходные документы не переписаны. Ниже статус первой **synthetic demo** реализации, а не закрытие всех задач исходного backlog.
+Основание: неизменённые `docs/specs/CONTRACTS_v1.md`, `IMPLEMENTATION_PLAN_v1.md`,
+`MVP_DATA_TASKS_v1.md`. Отдельный `ARCHITECTURE_v1.md` в checkout не предоставлен;
+архитектурные ограничения взяты из плана. Полная матрица 70 задач реализации и 14
+задач данных находится в [независимом ревью](verification/real-catalog-review.md).
+Наличие реализации не означает принятие всех внешних критериев MVP.
 
-| Область | Реализовано в первой версии | Осталось / границы проверки |
+## Реальная цепочка первого сценария
+
+**Ortonica + Medicamarket → 12 предложений → catalog.json → подбор → условный
+расчёт сертификата → документы** реализована в отдельном пакете версии 1.1.0.
+Шесть предложений каждого продавца проверены по прямым страницам. Каталог и
+`normalized_catalog.json` имеют одинаковое содержание; факты привязаны к SKU,
+конфигурации, URL, дате наблюдения и evidence. Независимый повторный запрос
+проверил 151 факт. См. [описание каталога](data/REAL_CATALOG.md),
+[фактический аудит](data/FACTUAL_AUDIT.md) и [первый сценарий](FIRST_SCENARIO.md).
+
+Публичные снимки имеют технические review-метки этого аудита. Тестовые пользователи,
+профиль категории, маршрут обращения и шаблоны остаются явно synthetic draft.
+Это mixed demo release; он не допускается в pilot. Старый пакет 1.0.0, его пять
+синтетических SKU и hash-проекции сохранены для совместимости и регрессий.
+
+Первый выбор — Ortonica Base 200, код предложения 5048, ширина 405 мм,
+грузоподъёмность 130 кг, опубликованная цена 14 500 ₽. Для модельного пользователя
+с сертификатом 10 000 ₽ условная разница равна 4 500 ₽. Приём сертификата именно
+для заказа и доставка неизвестны: покрытие/разница помечены условными, итоговая
+стоимость с доставкой остаётся неизвестной. Баннер продавца не становится
+подтверждением приёма сертификата или договора с фондом. Цены «от», несовпадающие
+цены и наличие сохранены без выбора удобного значения.
+
+## Реализованные области и границы
+
+| Область | Реализовано | Остаток / граница |
 | --- | --- | --- |
-| C01–C03 / CASE | Frozen typed DTO, strict major/extra fields, NFC/canonical hash, Result, owner/semantic-dialog revisions, candidates, tombstone | Полный набор полей для реальных категорий/представительства определяется approved data |
-| DB01–DB05 | PostgreSQL migrations/UoW, encrypted payload, scoped dedupe, FK, leases/fences, durable sending/receipts, release audit/pointer | Репозитории часто читают полную небольшую историю; bounded DB queries/pooling до масштаба |
-| CAT / MATCH / PRICE | Exact SKU snapshots, match/incomplete/mismatch, integer kopeks, unknown≠0, refusal/conditional certificate/shipping | Реальные reviewed medical profiles/suppliers/prices отсутствуют |
-| ROUTE / D | Фиксированный predicate registry, четыре статуса, источники/schema/hash validation, staging/activation/revocation | Только один synthetic model route; per-package lifecycle и generic active-release loading не завершены |
-| CONV / APP | Русский диалог, явная роль, подтверждение/правки, смена предложения/ветки, frozen preview/manifest, старые/чужие guards, страницы длинного текста/материалов | UX живого MAX mobile/web ещё не проверен |
-| DOC / FILE | Покупка PDF; обращение DOCX + 3 PDF, кириллица, DEMO, encrypted private blobs, authorized current/historical access и expiry | Нет официальных утверждённых региональных форм; scheduled physical expiry/janitor ещё нет |
-| MAX / HTTP | Проверенный webhook, HMAC identity, minimal ingress, ACK after commit, typed transport/upload, limits/opaque buttons, receipt binding, optional trusted CA, inspect_subscription adapter | Нет live token/HTTPS/subscription; groups/channels игнорируются, безопасная подсказка группе ещё не реализована; inspection не подключён к readiness/планировщику |
-| W | Inbox/render/outbox worker, один spawn renderer, hard render timeout/recycle, safe bounded retry до отправки, unknown-send recovery | Общая rate quota нескольких workers, persistent heartbeat/queue metrics и нагрузка ещё не реализованы; graceful shutdown доставки/DB ограничен внешним Compose timeout |
-| OPS / QA | Явный cleanup tombstoned case, schema validation, owner/epoch/fence/freshness tests, две local demo ветки, визуальная QA документов | Scheduled retention, backup encryption/restore, deletion replay, полная readiness не завершены |
-| REL | Dockerfile/Compose, pinned runtime dependencies, CLI/runbook/first-scenario, проверяемая ветка и независимое ревью | Docker daemon/build/run, live MAX и end-to-end latency/load здесь не проверены |
+| Contracts / CASE | Frozen strict DTO, canonical hashes, owner/revision/dialog/epoch guards, неизменяемые revisions/candidates, tombstone; additive provenance без изменения старых hashes | Медицинский профиль и порядок представительства требуют предметного утверждения |
+| DB / release | Encrypted payload, FK/dedupe/leases/fences, типизированные immutable пакеты, scoped active pointer, lifecycle до отдельных source/snapshot/template refs, CLI import/activate/rollback/revoke | Полная каталоговая портовая поверхность и indexed catalog candidate retrieval остаются развитием первой версии; рабочий rank проверяется на 1000 предложениях |
+| CAT / MATCH / PRICE | 12 публичных предложений, exact configuration/units/provenance, детерминированный rank, страницы по три, unknown/conflicting/from; целые копейки, отдельные сертификат/доставка/договор | Факты относятся к дате снимка; обновление и право на массовое переиспользование требуют отдельного решения |
+| ROUTE | Фиксированные predicates, четыре статуса, список пропусков/действий, проверка refs/hashes/lifecycle | Только synthetic модель; полный реальный региональный маршрут и адресат ещё не подготовлены |
+| CONV / APP | Русский диалог, явная роль, подтверждение/правки, сохранение pending candidate, мои кейсы, история/материалы, пагинация, guarded handles, frozen preview→manifest; смена алгоритма инвалидирует current result | Приёмка в настоящих MAX mobile/web и пользовательское исследование отсутствуют |
+| DOC / FILE | Покупка PDF; обращение DOCX + 3 PDF; кириллица и DEMO, conditional money, русские причины и вопросы продавцу, exact template registry; private encrypted blobs, current/historical access | Нет экспертно утверждённых реальных форм. Поддерживаются фиксированные engines, а не произвольный исполняемый шаблон |
+| MAX / HTTP | Verified minimal ingress/ACK after commit, typed transport/uploads/receipts, safe unknown-send, opaque buttons, shared DB quota, private guidance для доверенного actor; protected readiness | Нет live token/HTTPS/subscription и двух реальных клиентов; fixed-window DB quota не обещает распределённое sliding-window ограничение |
+| Worker / observability | Один spawn renderer с hard timeout, fenced renew/retry/recovery, persistent heartbeat, scoped queue counts/ages, safe trace/code logs и шесть агрегатов queue/compute | Нагрузочные измерения относятся к локальному facade/worker; proxy/network/MAX latency не измерены |
+| Retention / restore | Scheduled case/manifest90d, blobs7d, processed inbox24h, dedupe30d; claim-safe orphan sweep; encrypted consistent DB+blob backup7d, отдельный журнал, offline restore barrier и deletion replay | Размещение независимого журнала/ключей и операторский cutover нужно проверить в окружении эксплуатации. Автоматического внешнего dual-write нет |
+| QA / delivery | PostgreSQL негативные и crash/fence/delete/owner tests, две ветки для public и legacy dataset, scoped независимое ревью, воспроизводимые load modes, runbook/API/сценарий | Полный golden/document oracle corpus, Docker build/clean startup, live deployment, служебный слайд/комплект сдачи и user study не завершены |
 
-## Данные и допускаемый режим
+## Контрактные дополнения
 
-Пять синтетических SKU и два вымышленных поставщика покрывают точную цену, price-from, неизвестность и несовпадение. Никакие вымышленные условия не выдаются за факт о реальном продавце, медицинском изделии или фонде. Первый расчёт: 120 000 ₽ цена с включённой доставкой − 100 000 ₽ применимого принятого сертификата = 20 000 ₽ расчётная разница. Модель маршрута не обещает выплаты/приём заявления.
+`NavigatePayload` содержит optional screen/resource_id и bounded page; guard/owner/
+revision/epoch/TTL продолжают действовать. `ManifestContent` содержит optional
+catalog_ref/data_release_ref/supplier: только эти три новые None поля исключаются
+из legacy canonical projection. Заполненные значения участвуют в hash.
+`RenderRequest`/`RenderJobContext` передают typed template registry отдельно от
+manifest hash. `ClaimedJob.created_at` — optional operational metadata для queue
+timing. Persistent metric aggregates не содержат owner/job/trace/payload.
 
-Pilot fail-closed: flags не превращают synthetic draft в reviewed package. До пилота нужны экспертно проверенные параметры категории, реальные snapshots и источники/сроки, маршрут/условия/адресат/шаблоны, политика обработки данных, а также перечисленные выше эксплуатационные доработки. D01–D06 и все внешние acceptance gates не объявляются выполненными.
+MAX использует plain text, а не интерпретирует ввод пользователя как markup.
+Лимиты длины/кнопок проверяются до durable sending. Неопределённая отправка не
+повторяется автоматически; historical material требует явного предупреждения.
 
-## Изменения контрактов для первой UI реализации
+## Что ещё требуется для пилота
 
-Исходный контракт сохранён в `docs/specs`. Исполняемый `NavigatePayload` дополнен optional `screen`, `resource_id` и bounded `page` с default `0`. Они служат только guarded пагинации frozen candidate/preview и истории материалов. Candidate/review требуют привязанный resource; materials не принимает произвольный resource. Условия owner/revision/epoch/TTL сохранены. Подтверждение не пересчитывает manifest и не сокращает подтверждённые значения.
+D01/D04/D05: экспертные параметры категории, реальный маршрут/условия/адресат и
+пригодные формы. D11/QA03/REL01/REL03: живой MAX, HTTPS, subscription, два клиента,
+Docker build/restart и размещение. D12/REL02: правила сдачи, FAQ, служебный слайд и
+доступы. D13: владелец процесса, основания, политика и представительство для
+реальных чувствительных сведений. QA06: реальные участники и сравнительная
+проверка пользы. Эти условия не заменяются synthetic fixtures или флагом demo.
 
-Сообщения MAX теперь plain text: пользовательские значения не требуют HTML-escaping и не интерпретируются как markup. Ограничения длины/кнопок проверяются до `sending`; локальная ошибка форматирования не становится неопределённой внешней доставкой.
-
-`RecoveryReport` дополнен optional `exhausted_ids` с пустым default. Crash recovery применяет configured лимит попыток и bot scope; terminal job, failed bundle и восстановление текущего диалога сохраняются атомарно. Неоднозначные отправки, включая оставшиеся `sending` у terminal jobs, переходят в `delivery_unknown` без автоматического повтора.
-
-## Проверка и независимая оценка
-
-Команды, фактический итог тестов и оценка независимого агента фиксируются в `docs/verification/implementation-review.md` после финального прогона. Предварительный reviewer выявил восемь важных дефектов: startup, supervision render, retry upload, привязка rendered hash, смена выбора, MAX size limits, receipt binding и CA configuration. Для исправлений добавлены точечные регрессии; итоговая оценка относится к demo-границе, указанной выше.
-
-Визуальные проверки PDF/DOCX описаны в [documents-qa.md](verification/documents-qa.md). Локальные сценарии не заменяют проверку download/UX в настоящем MAX и не доказывают production capacity.
+Результаты окончательных команд, нагрузка и визуальная проверка фиксируются в
+[финальном протоколе](verification/real-catalog-validation.md). Исходные чекбоксы
+backlog не переписаны; статусы и ограничения приведены отдельно для проверки.

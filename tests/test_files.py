@@ -82,4 +82,5 @@ def test_ciphertext_only_authorized_read_fencing_history_and_ttl(tmp_path):
     orphan_tmp.write_bytes(ciphertext)
     assert storage.purge_orphans([record.encrypted_blob_ref], datetime.now(timezone.utc)+timedelta(seconds=1)) == 1
     assert storage.purge_orphans([record.encrypted_blob_ref], datetime.now(timezone.utc)+timedelta(seconds=1)) == 0
+    assert storage.purge_orphans([], datetime.now(timezone.utc)+timedelta(seconds=1), protected_claims=(claim,)) == 0
     assert storage.purge_orphans([], datetime.now(timezone.utc)+timedelta(seconds=1)) == 1

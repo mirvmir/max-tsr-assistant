@@ -1,0 +1,230 @@
+{
+  "schema_version": "1.0.0",
+  "release_id": "real-catalog-demo",
+  "version": "1.1.0",
+  "data_kind": "synthetic",
+  "review": {
+    "status": "draft",
+    "reviewer_id": null,
+    "reviewed_at": null,
+    "review_due_at": null
+  },
+  "files": [
+    {
+      "kind": "CategoryProfile",
+      "path": "data/categories/manual_wheelchair/1.1.0/profile.json",
+      "sha256": "47a145516d121a4702f8b15629c53aae7c589f6ffc97d043808f33bb114771b0",
+      "ref": {
+        "id": "manual-wheelchair-technical",
+        "version": "1.1.0"
+      }
+    },
+    {
+      "kind": "CatalogPack",
+      "path": "data/catalog/mvp/1.1.0/catalog.json",
+      "sha256": "028ec583072ffd9f7416aa650f5ccd920e07849067a565c3614242fd0be47f8d",
+      "ref": {
+        "id": "mvp-public-catalog",
+        "version": "1.1.0"
+      }
+    },
+    {
+      "kind": "SourcesRegistry",
+      "path": "data/sources/1.1.0/sources.json",
+      "sha256": "2c972ec8bcc28c85518d7c2c3c2b1bde557552798eb6507b800dfbc51dd71423",
+      "ref": {
+        "id": "mvp-public-sources",
+        "version": "1.1.0"
+      }
+    },
+    {
+      "kind": "DemoCasePack",
+      "path": "data/demo/1.1.0/profiles.json",
+      "sha256": "9ed2e841b58cf82715018a89d148cff3d91b7410d62f1c96a961fa7724fcf4e8",
+      "ref": {
+        "id": "technical-demo-cases",
+        "version": "1.1.0"
+      }
+    },
+    {
+      "kind": "GoldenCasePack",
+      "path": "data/golden/1.1.0/cases.json",
+      "sha256": "ff2487a1d6ae63c23cbc671f356f1f157c95173c4bd0b22fc201e82604860e8d",
+      "ref": {
+        "id": "real-golden",
+        "version": "1.1.0"
+      }
+    },
+    {
+      "kind": "RoutePack",
+      "path": "data/routes/ru-alt/fund-topup/1.0.0/route.json",
+      "sha256": "8fa3b3189aa6f9784a91e60fd8832dcb8670ba4f256de7ff464d608a51b00b6c",
+      "ref": {
+        "id": "ru-alt-demo-fund-topup",
+        "version": "1.0.0"
+      }
+    },
+    {
+      "kind": "TemplateRegistry",
+      "path": "templates/registry.json",
+      "sha256": "ad12c9c756a82d4553c6b54465cc8291d5afd8c73a930be224d3fbc19df91b41",
+      "ref": {
+        "id": "demo-templates",
+        "version": "1.0.0"
+      }
+    },
+    {
+      "kind": "asset",
+      "path": "assets/fonts/DejaVuSans.ttf",
+      "sha256": "ae7b7855e115a5966d8b1b3f80f254ccc117ec86f9965e202ee2940453837280",
+      "ref": {
+        "id": "font-DejaVuSans.ttf",
+        "version": "1.0.0"
+      }
+    },
+    {
+      "kind": "asset",
+      "path": "assets/fonts/DejaVuSans-Bold.ttf",
+      "sha256": "5c1247acef7f2b8522a31742c76d6adcb5569bacc0be7ceaa4dc39dd252ce895",
+      "ref": {
+        "id": "font-DejaVuSans-Bold.ttf",
+        "version": "1.0.0"
+      }
+    },
+    {
+      "kind": "asset",
+      "path": "assets/fonts/LICENSE-DejaVu.txt",
+      "sha256": "63d3ba759d12804c5b31a9d5940d855c1820d1f5999e6b0872eb1c7ff045fbc9",
+      "ref": {
+        "id": "font-LICENSE-DejaVu.txt",
+        "version": "1.0.0"
+      }
+    },
+    {
+      "kind": "asset",
+      "path": "data/evidence/public-ort-base200/2026-09-30/facts.json",
+      "sha256": "56a09a615606a393193c5bd4d46b4cb4ceacc51abf47d940c4ee6a1ada6916a6",
+      "ref": {
+        "id": "evidence-public-ort-base200",
+        "version": "1.1.0"
+      }
+    },
+    {
+      "kind": "asset",
+      "path": "data/evidence/public-ort-base195/2026-09-30/facts.json",
+      "sha256": "80f7e75505e83fa87544d98fb43b4b5605e8af0d450b17e6020148f8ca2fca33",
+      "ref": {
+        "id": "evidence-public-ort-base195",
+        "version": "1.1.0"
+      }
+    },
+    {
+      "kind": "asset",
+      "path": "data/evidence/public-ort-base250/2026-09-30/facts.json",
+      "sha256": "3ec9a6d380f3d05997cc17c2cf8eaa772edc3a383b372faaadc5d2b0221ba2a6",
+      "ref": {
+        "id": "evidence-public-ort-base250",
+        "version": "1.1.0"
+      }
+    },
+    {
+      "kind": "asset",
+      "path": "data/evidence/public-ort-base145/2026-09-30/facts.json",
+      "sha256": "317f54edfe8e25a8613de1d9d645d03c5ce65ca1e004ba0396c9d89887ebef14",
+      "ref": {
+        "id": "evidence-public-ort-base145",
+        "version": "1.1.0"
+      }
+    },
+    {
+      "kind": "asset",
+      "path": "data/evidence/public-ort-base300/2026-09-30/facts.json",
+      "sha256": "3700c704edd0e6a66d86ffcd7d588029f848dea56fbf22d5a5beb45925698c29",
+      "ref": {
+        "id": "evidence-public-ort-base300",
+        "version": "1.1.0"
+      }
+    },
+    {
+      "kind": "asset",
+      "path": "data/evidence/public-ort-base350/2026-09-30/facts.json",
+      "sha256": "f51dae18b85b3bbd1668892edf657f664e6fd50c6d90be0a7006e9f7f4df2eac",
+      "ref": {
+        "id": "evidence-public-ort-base350",
+        "version": "1.1.0"
+      }
+    },
+    {
+      "kind": "asset",
+      "path": "data/evidence/public-med-base200/2026-09-30/facts.json",
+      "sha256": "0a651079cc69d4584e28529a38a8b8c69eb90a36549e2c35d82f471325267978",
+      "ref": {
+        "id": "evidence-public-med-base200",
+        "version": "1.1.0"
+      }
+    },
+    {
+      "kind": "asset",
+      "path": "data/evidence/public-med-base300/2026-09-30/facts.json",
+      "sha256": "34c51897693ae3683128d6366ae869c281193a846f161713269f5062a05619bc",
+      "ref": {
+        "id": "evidence-public-med-base300",
+        "version": "1.1.0"
+      }
+    },
+    {
+      "kind": "asset",
+      "path": "data/evidence/public-med-base350/2026-09-30/facts.json",
+      "sha256": "33631626374c3a422f72acec0d3a7f70703c734cfb5e8753e225c5962f28630c",
+      "ref": {
+        "id": "evidence-public-med-base350",
+        "version": "1.1.0"
+      }
+    },
+    {
+      "kind": "asset",
+      "path": "data/evidence/public-med-base400/2026-09-30/facts.json",
+      "sha256": "ea44ab43f415a1cc37812fae94a9c3626f4bdeac9cf3636460d114ff0ac48cde",
+      "ref": {
+        "id": "evidence-public-med-base400",
+        "version": "1.1.0"
+      }
+    },
+    {
+      "kind": "asset",
+      "path": "data/evidence/public-med-baselite350/2026-09-30/facts.json",
+      "sha256": "de9bfe433cbf9b2b6cc12e579addf802d10e77c166c1a618a8de5ecfad3ee276",
+      "ref": {
+        "id": "evidence-public-med-baselite350",
+        "version": "1.1.0"
+      }
+    },
+    {
+      "kind": "asset",
+      "path": "data/evidence/public-med-baselite300/2026-09-30/facts.json",
+      "sha256": "baa5a4285500dae3a9c4e8b01f3a2d43010968e612090327b43c8914c5519b04",
+      "ref": {
+        "id": "evidence-public-med-baselite300",
+        "version": "1.1.0"
+      }
+    },
+    {
+      "kind": "asset",
+      "path": "docs/data/factual-audit.json",
+      "sha256": "5c7de56399aa2a36501690bca8910715c7797e88e43075a90fed4d971f1d261e",
+      "ref": {
+        "id": "factual-audit-json",
+        "version": "1.1.0"
+      }
+    },
+    {
+      "kind": "asset",
+      "path": "docs/data/FACTUAL_AUDIT.md",
+      "sha256": "651ed3d0db74d60638ebe74773978d66b83128913149b442744610bda46123c6",
+      "ref": {
+        "id": "factual-audit-report",
+        "version": "1.1.0"
+      }
+    }
+  ]
+}

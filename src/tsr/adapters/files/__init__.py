@@ -8,7 +8,7 @@ from pathlib import Path
 import re
 from uuid import uuid4
 
-from tsr.contracts import EncryptedBlob, Result, StagedArtifact
+from tsr.contracts import ArtifactRecord, ClaimedJob, EncryptedBlob, Result, StagedArtifact
 
 
 class PrivateFiles:
@@ -134,8 +134,76 @@ class PrivateFiles:
         result = self.delete_blob(ref)
         return result.ok and result.value
 
-    def purge_orphans(self, referenced_refs, older_than: datetime) -> int:
+    def _decode_ciphertext(self, payload: bytes) -> bytes:
+        if len(payload) > self.max_output_bytes * 2 + 4096:
+            raise ValueError('Unavailable artifact')
+        envelope = json.loads(payload)
+        if envelope.get('version') != 1:
+            raise ValueError('Unavailable artifact')
+        blob = EncryptedBlob(key_id=envelope['key_id'], **{
+            key: base64.b64decode(envelope[key], validate=True) for key in ('nonce','ciphertext','tag')})
+        data = self.crypto.decrypt(blob)
+        if len(data) > self.max_output_bytes:
+            raise ValueError('Unavailable artifact')
+        return data
+
+    def verify_ciphertext(self, payload: bytes, plaintext_sha256: str, size_bytes: int) -> Result[bool]:
+        """Maintenance integrity check; plaintext exists only in bounded memory."""
+        try:
+            data = self._decode_ciphertext(payload)
+            if len(data) != size_bytes or sha256(data).hexdigest() != plaintext_sha256:
+                raise ValueError('Unavailable artifact')
+            return Result.success(True)
+        except (ValueError,KeyError,TypeError):
+            return Result.failure('VALIDATION_ERROR',safe_message_key='file_integrity_failed')
+
+    def export_ciphertext(self, record: ArtifactRecord) -> Result[bytes]:
+        try:
+            fd=os.open(self._path(record.encrypted_blob_ref),os.O_RDONLY|os.O_NOFOLLOW)
+            with os.fdopen(fd,'rb') as stream:
+                payload=stream.read(self.max_output_bytes*2+4097)
+            verified=self.verify_ciphertext(payload,record.plaintext_sha256,record.size_bytes)
+            return Result.success(payload) if verified.ok else Result.failure('VALIDATION_ERROR',safe_message_key='file_integrity_failed')
+        except (OSError,ValueError):
+            return Result.failure('NOT_FOUND',safe_message_key='material_unavailable')
+
+    def restore_ciphertext(self, ref: str, payload: bytes, plaintext_sha256: str, size_bytes: int) -> Result[bool]:
+        verified=self.verify_ciphertext(payload,plaintext_sha256,size_bytes)
+        if not verified.ok:
+            return verified
+        temporary=None
+        try:
+            path=self._path(ref)
+            if path.exists():
+                existing=os.open(path,os.O_RDONLY|os.O_NOFOLLOW)
+                with os.fdopen(existing,'rb') as stream:
+                    if stream.read(len(payload)+1)!=payload:
+                        return Result.failure('VALIDATION_ERROR',safe_message_key='file_restore_conflict')
+                return Result.success(False)
+            temporary=self.root/(uuid4().hex+'.tmp')
+            fd=os.open(temporary,os.O_WRONLY|os.O_CREAT|os.O_EXCL|os.O_NOFOLLOW,0o600)
+            with os.fdopen(fd,'wb') as stream:
+                stream.write(payload);stream.flush();os.fsync(stream.fileno())
+            # Hard link creates the destination atomically without overwriting an
+            # unexpected file. Temporary and final files both contain ciphertext.
+            os.link(temporary,path,follow_symlinks=False)
+            directory=os.open(self.root,os.O_RDONLY|os.O_DIRECTORY)
+            try: os.fsync(directory)
+            finally: os.close(directory)
+            return Result.success(True)
+        except (ValueError,OSError):
+            return Result.failure('TEMPORARY_FAILURE',safe_message_key='file_restore_failed')
+        finally:
+            if temporary is not None: temporary.unlink(missing_ok=True)
+
+    def purge_orphans(self, referenced_refs, older_than: datetime, *, protected_claims:tuple[ClaimedJob,...]=()) -> int:
         """Caller supplies all published AND live staged refs and a lease-safe cutoff."""
+        now=datetime.now(timezone.utc)
+        if any(claim.kind=='render_artifact' and claim.lease_until>now for claim in protected_claims):
+            # UUID filenames deliberately contain no owner/job identifiers. A
+            # live render can be between encrypted staging and DB publication;
+            # conservatively postpone this whole sweep rather than guess refs.
+            return 0
         keep = frozenset(referenced_refs)
         removed = 0
         for path in (*self.root.glob('*.blob'), *self.root.glob('*.tmp')):

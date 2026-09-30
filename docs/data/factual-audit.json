@@ -1,0 +1,405 @@
+[
+  {
+    "source_id": "public-med-base200",
+    "url": "https://medicamarket.ru/product/kreslo_kolyaska_dlya_invalidov_ortonica_base_200_do_130kg_1",
+    "verified_at": "2026-09-30T01:10:06.979391+00:00",
+    "http_status": 200,
+    "response_date": "Wed, 30 Sep 2026 01:10:06 GMT",
+    "body_sha256": "e261cdb8f9d63704832519dc0714d40eea118bf76a38b23c144c468ccf492cdb",
+    "checks": {
+      "sku": true,
+      "visible_code": true,
+      "width": true,
+      "capacity": true,
+      "folding": true,
+      "wheel_type": true,
+      "visible_price": true,
+      "structured_price": true,
+      "structured_availability": true,
+      "visible_unavailable": true,
+      "seo_from": true,
+      "configuration_conflict": true,
+      "price_normalization": true,
+      "unknown_order_conditions_preserved": true
+    },
+    "all_passed": true,
+    "observed": {
+      "sku": "00-00046407",
+      "width_cm": "50,5",
+      "mass_kg": "130",
+      "visible_prices_rub": [
+        16724,
+        16724
+      ],
+      "structured_price_rub": 16724,
+      "h1": "Кресло-коляска инвалидная ORTONICA Base 200 складная до 130кг (цельно-литые шины, ширина сиденья 50,5см)"
+    }
+  },
+  {
+    "source_id": "public-med-base300",
+    "url": "https://medicamarket.ru/product/kreslo_kolyaska_dlya_invalidov_ortonica_base_300_do_130kg",
+    "verified_at": "2026-09-30T01:10:07.268918+00:00",
+    "http_status": 200,
+    "response_date": "Wed, 30 Sep 2026 01:10:06 GMT",
+    "body_sha256": "2656c95f44cbe0301bbf1ff3e64e570cf9e9197c3d4b2ce4c44e155c23a455e9",
+    "checks": {
+      "sku": true,
+      "visible_code": true,
+      "width": true,
+      "capacity": true,
+      "folding": true,
+      "wheel_type": true,
+      "visible_price": true,
+      "structured_price": true,
+      "structured_availability": true,
+      "visible_unavailable": true,
+      "seo_from": true,
+      "price_normalization": true,
+      "unknown_order_conditions_preserved": true
+    },
+    "all_passed": true,
+    "observed": {
+      "sku": "00-00048577",
+      "width_cm": "45,5",
+      "mass_kg": "130",
+      "visible_prices_rub": [
+        20046,
+        20046
+      ],
+      "structured_price_rub": 20046,
+      "h1": "Кресло-коляска инвалидная ORTONICA Base 300 складная до 130кг (пневмошины, ширина сиденья 45,5см)"
+    }
+  },
+  {
+    "source_id": "public-med-base350",
+    "url": "https://medicamarket.ru/product/kreslo_kolyaska_dlya_invalidov_ortonica_base_350_do_130kg",
+    "verified_at": "2026-09-30T01:10:06.413183+00:00",
+    "http_status": 200,
+    "response_date": "Wed, 30 Sep 2026 01:10:05 GMT",
+    "body_sha256": "ea06f802c08317f7dbac31771780a0bae6370d22d1e303fc5a7b99656352a1d8",
+    "checks": {
+      "sku": true,
+      "visible_code": true,
+      "width": true,
+      "capacity": true,
+      "folding": true,
+      "wheel_type": true,
+      "visible_price": true,
+      "structured_price": true,
+      "structured_availability": true,
+      "visible_unavailable": true,
+      "seo_from": true,
+      "price_normalization": true,
+      "unknown_order_conditions_preserved": true
+    },
+    "all_passed": true,
+    "observed": {
+      "sku": "00-00048705",
+      "width_cm": "45,5",
+      "mass_kg": "130",
+      "visible_prices_rub": [
+        20988,
+        20988,
+        10728,
+        13658,
+        16632
+      ],
+      "structured_price_rub": 20988,
+      "h1": "Кресло-коляска инвалидная ORTONICA Base 350 складная до 130кг (пневмошины, ширина сиденья 45,5см)"
+    }
+  },
+  {
+    "source_id": "public-med-base400",
+    "url": "https://medicamarket.ru/product/kreslo_kolyaska_dlya_invalidov_ortonica_base_400_do_130kg",
+    "verified_at": "2026-09-30T01:10:07.472549+00:00",
+    "http_status": 200,
+    "response_date": "Wed, 30 Sep 2026 01:10:06 GMT",
+    "body_sha256": "25a66833631fb25f17d49c61e3acd7bd99c9eeee0bbf630e1b3c85c5cede50f2",
+    "checks": {
+      "sku": true,
+      "visible_code": true,
+      "width": true,
+      "capacity": true,
+      "folding": true,
+      "wheel_type": true,
+      "visible_price": true,
+      "structured_price": true,
+      "structured_availability": true,
+      "visible_unavailable": true,
+      "seo_from": true,
+      "price_normalization": true,
+      "unknown_order_conditions_preserved": true
+    },
+    "all_passed": true,
+    "observed": {
+      "sku": "00-00048697",
+      "width_cm": "40,5",
+      "mass_kg": "130",
+      "visible_prices_rub": [
+        23628,
+        23628,
+        63448,
+        40533,
+        28952
+      ],
+      "structured_price_rub": 23628,
+      "h1": "Кресло-коляска инвалидная ORTONICA Base 400  складная, до 130кг (пневмошины, ширина сиденья 40,5см)"
+    }
+  },
+  {
+    "source_id": "public-med-baselite300",
+    "url": "https://medicamarket.ru/product/kreslo_kolyaska_dlya_invalidov_ortonica_base_lite_300_do_130kg",
+    "verified_at": "2026-09-30T01:10:10.435019+00:00",
+    "http_status": 200,
+    "response_date": "Wed, 30 Sep 2026 01:10:09 GMT",
+    "body_sha256": "d7b2a5091980c1800e2cdc9c69d19c65a1a02d1586e3ad121c11ca63ea351cbd",
+    "checks": {
+      "sku": true,
+      "visible_code": true,
+      "width": true,
+      "capacity": true,
+      "folding": true,
+      "wheel_type": true,
+      "visible_price": true,
+      "structured_price": true,
+      "structured_availability": true,
+      "visible_unavailable": true,
+      "seo_from": true,
+      "price_conflict_preserved": true,
+      "unknown_order_conditions_preserved": true
+    },
+    "all_passed": true,
+    "observed": {
+      "sku": "00-00048055",
+      "width_cm": "43",
+      "mass_kg": "130",
+      "visible_prices_rub": [
+        33141,
+        33141,
+        26865,
+        13658,
+        20988
+      ],
+      "structured_price_rub": 31957,
+      "h1": "Кресло-коляска инвалидная ORTONICA Base Lite 300 до 130кг "
+    }
+  },
+  {
+    "source_id": "public-med-baselite350",
+    "url": "https://medicamarket.ru/product/kreslo_kolyaska_dlya_invalidov_ortonica_base_lite_350_do_130kg",
+    "verified_at": "2026-09-30T01:10:11.200322+00:00",
+    "http_status": 200,
+    "response_date": "Wed, 30 Sep 2026 01:10:10 GMT",
+    "body_sha256": "61594e71eb8452d75ef506d853a53407fdc586fc9171034653b902ec914ac815",
+    "checks": {
+      "sku": true,
+      "visible_code": true,
+      "width": true,
+      "capacity": true,
+      "folding": true,
+      "wheel_type": true,
+      "visible_price": true,
+      "structured_price": true,
+      "structured_availability": true,
+      "visible_unavailable": true,
+      "seo_from": true,
+      "price_normalization": true,
+      "unknown_order_conditions_preserved": true
+    },
+    "all_passed": true,
+    "observed": {
+      "sku": "00-00048067",
+      "width_cm": "45,5",
+      "mass_kg": "130",
+      "visible_prices_rub": [
+        29986,
+        29986,
+        25145,
+        63448,
+        10213
+      ],
+      "structured_price_rub": 29986,
+      "h1": "Кресло-коляска инвалидная ORTONICA Base Lite 350 с системой регулировки глубины сиденья, до 130кг (цельно-литые шины, ширина сиденья 45,5см)"
+    }
+  },
+  {
+    "source_id": "public-ort-base145",
+    "url": "https://ortonica.ru/catalog/invalidnye_kolyaski/mehanicheskie_kolyaski/322/",
+    "verified_at": "2026-09-30T01:10:08.469620+00:00",
+    "http_status": 200,
+    "response_date": "Wed, 30 Sep 2026 01:10:07 GMT",
+    "body_sha256": "b685c067ac50168a570cc5613dc19cab53b1ea43ed8044cbbb7370bcc584fab7",
+    "checks": {
+      "sku": true,
+      "width": true,
+      "capacity": true,
+      "exact_price": true,
+      "rub": true,
+      "folding": true,
+      "selected_name": true,
+      "published_articles": true,
+      "can_buy": true,
+      "max_quantity": true,
+      "wheel_type": true,
+      "unknown_order_conditions_preserved": true
+    },
+    "all_passed": true,
+    "observed": {
+      "sku": "324",
+      "width_cm": "43",
+      "mass_kg": "130",
+      "price_rub": "33500",
+      "can_buy": "0"
+    }
+  },
+  {
+    "source_id": "public-ort-base195",
+    "url": "https://ortonica.ru/catalog/invalidnye_kolyaski/mehanicheskie_kolyaski/base-190/385/",
+    "verified_at": "2026-09-30T01:10:08.701863+00:00",
+    "http_status": 200,
+    "response_date": "Wed, 30 Sep 2026 01:10:08 GMT",
+    "body_sha256": "02eaadc278d4c31f2a1d03ff25749c882890fef20ace4edc5a68c78d066a2840",
+    "checks": {
+      "sku": true,
+      "width": true,
+      "capacity": true,
+      "exact_price": true,
+      "rub": true,
+      "folding": true,
+      "selected_name": true,
+      "published_articles": true,
+      "can_buy": true,
+      "max_quantity": true,
+      "wheel_type": true,
+      "unknown_order_conditions_preserved": true
+    },
+    "all_passed": true,
+    "observed": {
+      "sku": "386",
+      "width_cm": "38",
+      "mass_kg": "130",
+      "price_rub": "29900",
+      "can_buy": true
+    }
+  },
+  {
+    "source_id": "public-ort-base200",
+    "url": "https://ortonica.ru/catalog/invalidnye_kolyaski/mehanicheskie_kolyaski/base-200/5053/",
+    "verified_at": "2026-09-30T01:10:09.712911+00:00",
+    "http_status": 200,
+    "response_date": "Wed, 30 Sep 2026 01:10:09 GMT",
+    "body_sha256": "0936ddc6561b180cea464029b488bc46cefa421a957e35fdfb304af556cfd19b",
+    "checks": {
+      "sku": true,
+      "width": true,
+      "capacity": true,
+      "exact_price": true,
+      "rub": true,
+      "folding": true,
+      "selected_name": true,
+      "published_articles": true,
+      "can_buy": true,
+      "max_quantity": true,
+      "wheel_type": true,
+      "unknown_order_conditions_preserved": true
+    },
+    "all_passed": true,
+    "observed": {
+      "sku": "5048",
+      "width_cm": "40,5",
+      "mass_kg": "130",
+      "price_rub": "14500",
+      "can_buy": true
+    }
+  },
+  {
+    "source_id": "public-ort-base250",
+    "url": "https://ortonica.ru/catalog/invalidnye_kolyaski/mehanicheskie_kolyaski/base-250/4907/",
+    "verified_at": "2026-09-30T01:10:09.917696+00:00",
+    "http_status": 200,
+    "response_date": "Wed, 30 Sep 2026 01:10:09 GMT",
+    "body_sha256": "151ea4022aacd1b23161d3187236943040d5b158745efa2360e7ba7ac17f5b6c",
+    "checks": {
+      "sku": true,
+      "width": true,
+      "capacity": true,
+      "exact_price": true,
+      "rub": true,
+      "folding": true,
+      "selected_name": true,
+      "published_articles": true,
+      "can_buy": true,
+      "max_quantity": true,
+      "wheel_type": true,
+      "unknown_order_conditions_preserved": true
+    },
+    "all_passed": true,
+    "observed": {
+      "sku": "4908",
+      "width_cm": "40,5",
+      "mass_kg": "130",
+      "price_rub": "17900",
+      "can_buy": true
+    }
+  },
+  {
+    "source_id": "public-ort-base300",
+    "url": "https://ortonica.ru/catalog/invalidnye_kolyaski/mehanicheskie_kolyaski/5059/",
+    "verified_at": "2026-09-30T01:10:10.929150+00:00",
+    "http_status": 200,
+    "response_date": "Wed, 30 Sep 2026 01:10:10 GMT",
+    "body_sha256": "5f4d1c1d41863479f4ed2a66d174147e9891aaadd277c8a0cbb4cbe88a244fe3",
+    "checks": {
+      "sku": true,
+      "width": true,
+      "capacity": true,
+      "exact_price": true,
+      "rub": true,
+      "folding": true,
+      "selected_name": true,
+      "published_articles": true,
+      "can_buy": true,
+      "max_quantity": true,
+      "wheel_type": true,
+      "unknown_order_conditions_preserved": true
+    },
+    "all_passed": true,
+    "observed": {
+      "sku": "5055",
+      "width_cm": "40,5",
+      "mass_kg": "130",
+      "price_rub": "22900",
+      "can_buy": true
+    }
+  },
+  {
+    "source_id": "public-ort-base350",
+    "url": "https://ortonica.ru/catalog/invalidnye_kolyaski/mehanicheskie_kolyaski/4685/",
+    "verified_at": "2026-09-30T01:10:11.142235+00:00",
+    "http_status": 200,
+    "response_date": "Wed, 30 Sep 2026 01:10:10 GMT",
+    "body_sha256": "b9a884fc857711f0d3462d9c2d0a18bc2978fe6fb2b77af86e16731e9cd5228b",
+    "checks": {
+      "sku": true,
+      "width": true,
+      "capacity": true,
+      "exact_price": true,
+      "rub": true,
+      "folding": true,
+      "selected_name": true,
+      "published_articles": true,
+      "can_buy": true,
+      "max_quantity": true,
+      "wheel_type": true,
+      "unknown_order_conditions_preserved": true
+    },
+    "all_passed": true,
+    "observed": {
+      "sku": "4686",
+      "width_cm": "43",
+      "mass_kg": "130",
+      "price_rub": "23700",
+      "can_buy": true
+    }
+  }
+]

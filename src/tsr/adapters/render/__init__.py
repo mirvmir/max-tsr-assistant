@@ -5,6 +5,7 @@ No database, configuration, transport or encryption dependency is imported.
 """
 from hashlib import sha256
 from io import BytesIO
+from datetime import datetime, timezone
 from pathlib import Path
 from xml.sax.saxutils import escape
 
@@ -19,6 +20,11 @@ MISSING_LABELS = {
     'address':'Адрес', 'phone':'Телефон', 'email':'Электронная почта',
     'applicant_status_declared':'Статус заявителя',
     'certificate_applicable_declared':'Применимость сертификата',
+    'supplier_accepts_certificate':'Продавец принимает сертификат',
+    'supplier_has_fund_contract':'Договор продавца с фондом',
+    'seat_width':'Ширина сиденья', 'seat_depth':'Глубина сиденья',
+    'max_user_weight':'Максимальная масса пользователя', 'max_user_mass':'Максимальная масса пользователя',
+    'total_width':'Общая ширина', 'folding':'Складная конструкция', 'foldable':'Складная конструкция',
 }
 SUPPORTED = {
     ('purchase_card', 'pdf'): 'demo-purchase-card',
@@ -32,7 +38,7 @@ SUPPORTED = {
 def _plain_lines(model):
     if model.case_mode == 'demo':
         yield DEMO_MARK
-        yield 'Синтетические данные. Документ не является официальной формой.'
+        yield 'Демонстрационные сведения пользователя и черновой шаблон. Документ не является официальной формой.'
     for warning in model.warnings:
         yield warning
     for section in model.sections:
@@ -49,15 +55,17 @@ def _plain_lines(model):
     if model.missing_fields:
         yield 'Незаполненные поля'
         for field in model.missing_fields:
-            yield f'{MISSING_LABELS.get(field, field)}: Не указано'
+            yield f'{MISSING_LABELS.get(field, "Поле требует уточнения")}: Не указано'
     if model.sources:
         yield 'Источники'
         for source in model.sources:
             yield f'{source.title} ({source.source_id})'
             if source.url:
                 yield source.url
-            if source.locator:
+            if source.locator and not source.locator.startswith(('data/','templates/','assets/')):
                 yield source.locator
+            if source.observed_at:
+                yield 'Дата наблюдения источника: '+source.observed_at.isoformat()
     yield f'Хеш подтверждённого содержания: {model.manifest_hash}'
 
 
@@ -132,16 +140,34 @@ def _docx(model):
 
 def render_document(request: RenderRequest) -> Result[RenderedBytes]:
     model = request.model
-    expected_template = SUPPORTED.get((request.document_kind, request.format))
     if (model.manifest_hash != request.manifest_hash or model.document_kind != request.document_kind
-            or expected_template is None or request.template_ref.id != expected_template
-            or request.template_ref.version != '1.0.0' or request.max_output_bytes <= 0):
+            or request.max_output_bytes <= 0):
         return Result.failure('VALIDATION_ERROR', safe_message_key='document_invalid')
     if model.schema_version != '1.0.0':
         return Result.failure('UNSUPPORTED_SCHEMA')
-    # Every current registered asset is synthetic and draft. A pilot must wait
-    # for separately reviewed templates, never hide the demo mark on these.
-    if model.case_mode != 'demo':
+    registry = request.template_registry
+    if registry is None:
+        expected_template = SUPPORTED.get((request.document_kind, request.format))
+        if expected_template is None or request.template_ref.id != expected_template or request.template_ref.version != '1.0.0':
+            return Result.failure('VALIDATION_ERROR', safe_message_key='document_invalid')
+        template_ready = model.case_mode == 'demo'
+    else:
+        if registry.schema_version != '1.0.0':
+            return Result.failure('UNSUPPORTED_SCHEMA')
+        assets = [asset for entry in registry.templates
+                  if entry.ref == request.template_ref and entry.document_kind == request.document_kind
+                  for asset in entry.assets if asset.format == request.format]
+        expected_renderer = {'pdf':'reportlab-v1', 'docx':'python-docx-v1'}[request.format]
+        if len(assets) != 1 or assets[0].renderer_id != expected_renderer:
+            return Result.failure('VALIDATION_ERROR', safe_message_key='document_invalid')
+        review = registry.review
+        now = datetime.now(timezone.utc)
+        public_reviewed = (registry.data_kind == 'public_snapshot' and review.status == 'reviewed'
+                           and bool(review.reviewer_id) and review.reviewed_at is not None
+                           and review.review_due_at is not None and review.reviewed_at <= now < review.review_due_at)
+        template_ready = public_reviewed or (model.case_mode == 'demo' and registry.data_kind == 'synthetic'
+                                             and review.status == 'draft')
+    if not template_ready:
         return Result.failure('DATA_NOT_READY', safe_message_key='template_not_reviewed')
     # Bound input before formatting to avoid pathological unbounded in-memory work.
     if sum(len(line.encode('utf-8')) for line in _plain_lines(model)) > 1_000_000:

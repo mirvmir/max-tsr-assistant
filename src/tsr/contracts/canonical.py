@@ -18,6 +18,13 @@ def candidate_projection(candidate):
 
 
 def _plain(value):
+    if isinstance(value,models.ManifestContent):
+        payload=value.model_dump(mode='python',by_alias=True)
+        # Exactly these additive optional fields did not exist in v1 stored
+        # manifests. Their absence must keep every historical byte/hash stable.
+        for key in ('catalog_ref','data_release_ref','supplier'):
+            if payload[key] is None: payload.pop(key)
+        return _plain(payload)
     if isinstance(value,BaseModel): return _plain(value.model_dump(mode='python',by_alias=True))
     if isinstance(value,Mapping):
         normalized={unicodedata.normalize('NFC',str(k)):_plain(v) for k,v in value.items()}

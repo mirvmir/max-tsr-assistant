@@ -6,6 +6,7 @@ from fastapi import FastAPI, HTTPException, Request, Security
 from fastapi.security import APIKeyHeader
 from pydantic import BaseModel
 from starlette.concurrency import run_in_threadpool
+from starlette.responses import JSONResponse
 
 from tsr.adapters.max.ingress import parse_update, persist_update, secret_value, verify_secret
 
@@ -34,7 +35,8 @@ def create_app(settings, db, application=None) -> FastAPI:
         return StatusResponse(status='live')
 
     @app.get('/health/ready', response_model=StatusResponse, operation_id='health_ready',
-             responses={401: {'description': 'Invalid readiness credential'}, 503: {'description': 'Not ready'}})
+             responses={401: {'description': 'Invalid readiness credential'},
+                        503: {'description': 'Readiness credential not configured, or DB/worker/release/secrets/subscription/restore gate unavailable. Authenticated degraded response: {"status":"degraded"}.'}})
     async def ready(supplied: str | None = Security(ready_key)):
         expected = secret_value(settings.readiness_secret)
         if not expected:
@@ -42,11 +44,13 @@ def create_app(settings, db, application=None) -> FastAPI:
         if not verify_secret(supplied, expected):
             raise HTTPException(status_code=401, detail='unauthorized')
         try:
-            healthy = await run_in_threadpool(db.ping)
+            from tsr.adapters.max.readiness import collect_readiness
+            health = await run_in_threadpool(collect_readiness, settings, db, application)
+            healthy = health.status == "ready"
         except Exception:
             healthy = False
         if not healthy:
-            raise HTTPException(status_code=503, detail='not_ready')
+            return JSONResponse(status_code=503,content={'status':'degraded'})
         return StatusResponse(status='ready')
 
     @app.post('/webhooks/max', response_model=StatusResponse, operation_id='receive_max_update',

@@ -65,8 +65,11 @@ def validate_catalog(pack,profiles,sources):
         check_fact(offer.accepts_certificate,'boolean',path+'.accepts_certificate')
         check_fact(offer.has_fund_contract,'boolean',path+'.has_fund_contract')
         check_fact(offer.availability,'code',path+'.availability')
-        if offer.availability.status=='known' and offer.availability.value.value not in ('in_stock','on_order','out_of_stock'):
-            error(path+'.availability')
+        availability_values=(offer.availability,) if offer.availability.status=='known' else offer.availability.alternatives
+        for alternative_index,value in enumerate(availability_values):
+            if value.value and value.value.kind=='code' and value.value.value not in ('in_stock','on_order','out_of_stock'):
+                suffix='' if offer.availability.status=='known' else f'.alternatives[{alternative_index}]'
+                error(path+'.availability'+suffix+'.value.value')
         if offer.price_kind=='unknown' and offer.price.status=='known':
             error(path+'.price_kind')
         charge=offer.delivery.charge

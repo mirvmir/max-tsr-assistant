@@ -25,6 +25,8 @@ services:
         condition: service_healthy
     volumes:
       - private:/var/lib/tsr/blobs
+      - backups:/var/lib/tsr/backups
+      - deletion_journal:/var/lib/tsr/deletion-journal
     secrets: &app_secrets
       - encryption_key
       - identity_hmac_key
@@ -42,6 +44,8 @@ services:
         condition: service_healthy
     volumes:
       - private:/var/lib/tsr/blobs
+      - backups:/var/lib/tsr/backups
+      - deletion_journal:/var/lib/tsr/deletion-journal
     secrets: *app_secrets
     command: ["tsr", "worker"]
     stop_grace_period: 30s
@@ -49,6 +53,8 @@ services:
 volumes:
   postgres:
   private:
+  backups:
+  deletion_journal:
 secrets:
   encryption_key:
     file: ./secrets/encryption_key

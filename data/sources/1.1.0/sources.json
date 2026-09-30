@@ -1,0 +1,229 @@
+{
+  "schema_version": "1.0.0",
+  "registry_id": "mvp-public-sources",
+  "version": "1.1.0",
+  "data_kind": "public_snapshot",
+  "review": {
+    "status": "reviewed",
+    "reviewer_id": "codex-root-public-fact-audit",
+    "reviewed_at": "2026-09-30T01:10:11.200322Z",
+    "review_due_at": "2026-10-07T01:10:11.200322Z"
+  },
+  "sources": [
+    {
+      "source_id": "public-ort-base200",
+      "title": "Ortonica: Base 200, предложение 5048",
+      "url": "https://ortonica.ru/catalog/invalidnye_kolyaski/mehanicheskie_kolyaski/base-200/5053/",
+      "locator": "data/evidence/public-ort-base200/2026-09-30/facts.json",
+      "observed_at": "2026-09-30T00:50:48.503882Z",
+      "use_basis": "Наблюдение общедоступных фактов карточки для технической сверки; сохранено только фактическое извлечение. Разрешение на массовое переиздание текстов/фото не установлено; не заявляется.",
+      "data_kind": "public_snapshot",
+      "review": {
+        "status": "reviewed",
+        "reviewer_id": "codex-root-public-fact-audit",
+        "reviewed_at": "2026-09-30T01:10:11.200322Z",
+        "review_due_at": "2026-10-07T01:10:11.200322Z"
+      },
+      "captured_at": "2026-09-30T00:50:48.503882Z",
+      "sha256": "56a09a615606a393193c5bd4d46b4cb4ceacc51abf47d940c4ee6a1ada6916a6"
+    },
+    {
+      "source_id": "public-ort-base195",
+      "title": "Ortonica: Base 195, предложение 386",
+      "url": "https://ortonica.ru/catalog/invalidnye_kolyaski/mehanicheskie_kolyaski/base-190/385/",
+      "locator": "data/evidence/public-ort-base195/2026-09-30/facts.json",
+      "observed_at": "2026-09-30T00:50:49.009967Z",
+      "use_basis": "Наблюдение общедоступных фактов карточки для технической сверки; сохранено только фактическое извлечение. Разрешение на массовое переиздание текстов/фото не установлено; не заявляется.",
+      "data_kind": "public_snapshot",
+      "review": {
+        "status": "reviewed",
+        "reviewer_id": "codex-root-public-fact-audit",
+        "reviewed_at": "2026-09-30T01:10:11.200322Z",
+        "review_due_at": "2026-10-07T01:10:11.200322Z"
+      },
+      "captured_at": "2026-09-30T00:50:49.009967Z",
+      "sha256": "80f7e75505e83fa87544d98fb43b4b5605e8af0d450b17e6020148f8ca2fca33"
+    },
+    {
+      "source_id": "public-ort-base250",
+      "title": "Ortonica: Base 250, предложение 4908",
+      "url": "https://ortonica.ru/catalog/invalidnye_kolyaski/mehanicheskie_kolyaski/base-250/4907/",
+      "locator": "data/evidence/public-ort-base250/2026-09-30/facts.json",
+      "observed_at": "2026-09-30T00:50:49.046195Z",
+      "use_basis": "Наблюдение общедоступных фактов карточки для технической сверки; сохранено только фактическое извлечение. Разрешение на массовое переиздание текстов/фото не установлено; не заявляется.",
+      "data_kind": "public_snapshot",
+      "review": {
+        "status": "reviewed",
+        "reviewer_id": "codex-root-public-fact-audit",
+        "reviewed_at": "2026-09-30T01:10:11.200322Z",
+        "review_due_at": "2026-10-07T01:10:11.200322Z"
+      },
+      "captured_at": "2026-09-30T00:50:49.046195Z",
+      "sha256": "3ec9a6d380f3d05997cc17c2cf8eaa772edc3a383b372faaadc5d2b0221ba2a6"
+    },
+    {
+      "source_id": "public-ort-base145",
+      "title": "Ortonica: Base 145, предложение 324",
+      "url": "https://ortonica.ru/catalog/invalidnye_kolyaski/mehanicheskie_kolyaski/322/",
+      "locator": "data/evidence/public-ort-base145/2026-09-30/facts.json",
+      "observed_at": "2026-09-30T00:50:49.032264Z",
+      "use_basis": "Наблюдение общедоступных фактов карточки для технической сверки; сохранено только фактическое извлечение. Разрешение на массовое переиздание текстов/фото не установлено; не заявляется.",
+      "data_kind": "public_snapshot",
+      "review": {
+        "status": "reviewed",
+        "reviewer_id": "codex-root-public-fact-audit",
+        "reviewed_at": "2026-09-30T01:10:11.200322Z",
+        "review_due_at": "2026-10-07T01:10:11.200322Z"
+      },
+      "captured_at": "2026-09-30T00:50:49.032264Z",
+      "sha256": "317f54edfe8e25a8613de1d9d645d03c5ce65ca1e004ba0396c9d89887ebef14"
+    },
+    {
+      "source_id": "public-ort-base300",
+      "title": "Ortonica: Base 300, предложение 5055",
+      "url": "https://ortonica.ru/catalog/invalidnye_kolyaski/mehanicheskie_kolyaski/5059/",
+      "locator": "data/evidence/public-ort-base300/2026-09-30/facts.json",
+      "observed_at": "2026-09-30T00:52:13.252349Z",
+      "use_basis": "Наблюдение общедоступных фактов карточки для технической сверки; сохранено только фактическое извлечение. Разрешение на массовое переиздание текстов/фото не установлено; не заявляется.",
+      "data_kind": "public_snapshot",
+      "review": {
+        "status": "reviewed",
+        "reviewer_id": "codex-root-public-fact-audit",
+        "reviewed_at": "2026-09-30T01:10:11.200322Z",
+        "review_due_at": "2026-10-07T01:10:11.200322Z"
+      },
+      "captured_at": "2026-09-30T00:52:13.252349Z",
+      "sha256": "3700c704edd0e6a66d86ffcd7d588029f848dea56fbf22d5a5beb45925698c29"
+    },
+    {
+      "source_id": "public-ort-base350",
+      "title": "Ortonica: Base 350, предложение 4686",
+      "url": "https://ortonica.ru/catalog/invalidnye_kolyaski/mehanicheskie_kolyaski/4685/",
+      "locator": "data/evidence/public-ort-base350/2026-09-30/facts.json",
+      "observed_at": "2026-09-30T00:52:13.470205Z",
+      "use_basis": "Наблюдение общедоступных фактов карточки для технической сверки; сохранено только фактическое извлечение. Разрешение на массовое переиздание текстов/фото не установлено; не заявляется.",
+      "data_kind": "public_snapshot",
+      "review": {
+        "status": "reviewed",
+        "reviewer_id": "codex-root-public-fact-audit",
+        "reviewed_at": "2026-09-30T01:10:11.200322Z",
+        "review_due_at": "2026-10-07T01:10:11.200322Z"
+      },
+      "captured_at": "2026-09-30T00:52:13.470205Z",
+      "sha256": "f51dae18b85b3bbd1668892edf657f664e6fd50c6d90be0a7006e9f7f4df2eac"
+    },
+    {
+      "source_id": "public-med-base200",
+      "title": "Medicamarket: Base 200, предложение 00-00046407",
+      "url": "https://medicamarket.ru/product/kreslo_kolyaska_dlya_invalidov_ortonica_base_200_do_130kg_1",
+      "locator": "data/evidence/public-med-base200/2026-09-30/facts.json",
+      "observed_at": "2026-09-30T00:50:50.995500Z",
+      "use_basis": "Наблюдение общедоступных фактов карточки для технической сверки; сохранено только фактическое извлечение. Разрешение на массовое переиздание текстов/фото не установлено; не заявляется.",
+      "data_kind": "public_snapshot",
+      "review": {
+        "status": "reviewed",
+        "reviewer_id": "codex-root-public-fact-audit",
+        "reviewed_at": "2026-09-30T01:10:11.200322Z",
+        "review_due_at": "2026-10-07T01:10:11.200322Z"
+      },
+      "captured_at": "2026-09-30T00:50:50.995500Z",
+      "sha256": "0a651079cc69d4584e28529a38a8b8c69eb90a36549e2c35d82f471325267978"
+    },
+    {
+      "source_id": "public-med-base300",
+      "title": "Medicamarket: Base 300, предложение 00-00048577",
+      "url": "https://medicamarket.ru/product/kreslo_kolyaska_dlya_invalidov_ortonica_base_300_do_130kg",
+      "locator": "data/evidence/public-med-base300/2026-09-30/facts.json",
+      "observed_at": "2026-09-30T00:51:05.129175Z",
+      "use_basis": "Наблюдение общедоступных фактов карточки для технической сверки; сохранено только фактическое извлечение. Разрешение на массовое переиздание текстов/фото не установлено; не заявляется.",
+      "data_kind": "public_snapshot",
+      "review": {
+        "status": "reviewed",
+        "reviewer_id": "codex-root-public-fact-audit",
+        "reviewed_at": "2026-09-30T01:10:11.200322Z",
+        "review_due_at": "2026-10-07T01:10:11.200322Z"
+      },
+      "captured_at": "2026-09-30T00:51:05.129175Z",
+      "sha256": "34c51897693ae3683128d6366ae869c281193a846f161713269f5062a05619bc"
+    },
+    {
+      "source_id": "public-med-base350",
+      "title": "Medicamarket: Base 350, предложение 00-00048705",
+      "url": "https://medicamarket.ru/product/kreslo_kolyaska_dlya_invalidov_ortonica_base_350_do_130kg",
+      "locator": "data/evidence/public-med-base350/2026-09-30/facts.json",
+      "observed_at": "2026-09-30T00:50:51.418752Z",
+      "use_basis": "Наблюдение общедоступных фактов карточки для технической сверки; сохранено только фактическое извлечение. Разрешение на массовое переиздание текстов/фото не установлено; не заявляется.",
+      "data_kind": "public_snapshot",
+      "review": {
+        "status": "reviewed",
+        "reviewer_id": "codex-root-public-fact-audit",
+        "reviewed_at": "2026-09-30T01:10:11.200322Z",
+        "review_due_at": "2026-10-07T01:10:11.200322Z"
+      },
+      "captured_at": "2026-09-30T00:50:51.418752Z",
+      "sha256": "33631626374c3a422f72acec0d3a7f70703c734cfb5e8753e225c5962f28630c"
+    },
+    {
+      "source_id": "public-med-base400",
+      "title": "Medicamarket: Base 400, предложение 00-00048697",
+      "url": "https://medicamarket.ru/product/kreslo_kolyaska_dlya_invalidov_ortonica_base_400_do_130kg",
+      "locator": "data/evidence/public-med-base400/2026-09-30/facts.json",
+      "observed_at": "2026-09-30T00:50:51.872514Z",
+      "use_basis": "Наблюдение общедоступных фактов карточки для технической сверки; сохранено только фактическое извлечение. Разрешение на массовое переиздание текстов/фото не установлено; не заявляется.",
+      "data_kind": "public_snapshot",
+      "review": {
+        "status": "reviewed",
+        "reviewer_id": "codex-root-public-fact-audit",
+        "reviewed_at": "2026-09-30T01:10:11.200322Z",
+        "review_due_at": "2026-10-07T01:10:11.200322Z"
+      },
+      "captured_at": "2026-09-30T00:50:51.872514Z",
+      "sha256": "ea44ab43f415a1cc37812fae94a9c3626f4bdeac9cf3636460d114ff0ac48cde"
+    },
+    {
+      "source_id": "public-med-baselite350",
+      "title": "Medicamarket: Base Lite 350, предложение 00-00048067",
+      "url": "https://medicamarket.ru/product/kreslo_kolyaska_dlya_invalidov_ortonica_base_lite_350_do_130kg",
+      "locator": "data/evidence/public-med-baselite350/2026-09-30/facts.json",
+      "observed_at": "2026-09-30T00:51:02.657269Z",
+      "use_basis": "Наблюдение общедоступных фактов карточки для технической сверки; сохранено только фактическое извлечение. Разрешение на массовое переиздание текстов/фото не установлено; не заявляется.",
+      "data_kind": "public_snapshot",
+      "review": {
+        "status": "reviewed",
+        "reviewer_id": "codex-root-public-fact-audit",
+        "reviewed_at": "2026-09-30T01:10:11.200322Z",
+        "review_due_at": "2026-10-07T01:10:11.200322Z"
+      },
+      "captured_at": "2026-09-30T00:51:02.657269Z",
+      "sha256": "de9bfe433cbf9b2b6cc12e579addf802d10e77c166c1a618a8de5ecfad3ee276"
+    },
+    {
+      "source_id": "public-med-baselite300",
+      "title": "Medicamarket: Base Lite 300, предложение 00-00048055",
+      "url": "https://medicamarket.ru/product/kreslo_kolyaska_dlya_invalidov_ortonica_base_lite_300_do_130kg",
+      "locator": "data/evidence/public-med-baselite300/2026-09-30/facts.json",
+      "observed_at": "2026-09-30T00:54:20.459565Z",
+      "use_basis": "Наблюдение общедоступных фактов карточки для технической сверки; сохранено только фактическое извлечение. Разрешение на массовое переиздание текстов/фото не установлено; не заявляется.",
+      "data_kind": "public_snapshot",
+      "review": {
+        "status": "reviewed",
+        "reviewer_id": "codex-root-public-fact-audit",
+        "reviewed_at": "2026-09-30T01:10:11.200322Z",
+        "review_due_at": "2026-10-07T01:10:11.200322Z"
+      },
+      "captured_at": "2026-09-30T00:54:20.459565Z",
+      "sha256": "baa5a4285500dae3a9c4e8b01f3a2d43010968e612090327b43c8914c5519b04"
+    },
+    {
+      "source_id": "synthetic-demo",
+      "url": "https://example.invalid/synthetic-demo",
+      "title": "Искусственный учебный набор, не рыночный или правовой источник",
+      "captured_at": "2026-09-29T12:00:00Z",
+      "data_kind": "synthetic",
+      "review": {
+        "status": "draft"
+      },
+      "use_basis": "Created for this demo; no real user or market data"
+    }
+  ]
+}

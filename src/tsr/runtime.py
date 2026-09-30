@@ -9,6 +9,8 @@ class TransportBindings:
         self.db, self.files = db, files
 
     def _outbox(self, uow, permit):
+        if not uow.restore_ready():
+            raise ValueError("restore_not_ready")
         record = uow.outbox.get(permit.outbox_id)
         if (record is None or record.status != "sending" or record.send_permit != permit
                 or record.owner_id != permit.owner_id or permit.expires_at <= datetime.now(timezone.utc)):
@@ -24,11 +26,10 @@ class TransportBindings:
     def recipient(self, permit):
         with self.db.uow() as uow:
             self._outbox(uow, permit)
-            matches = [i for i in uow.identities.list_by_owner(permit.owner_id)
-                       if i.delivery_target_id == permit.delivery_target_id]
-            if len(matches) != 1:
+            identity = uow.identities.find_by_target(permit.owner_id, permit.delivery_target_id)
+            if identity is None:
                 raise ValueError("recipient_not_authorized")
-            return matches[0]
+            return identity
 
     def attachment(self, permit, reference):
         from tsr.adapters.max import AuthorizedAttachment
@@ -48,6 +49,8 @@ class TransportBindings:
 
     def write_attachment(self, record):
         with self.db.uow() as uow:
+            if not uow.restore_ready():
+                raise ValueError("restore_not_ready")
             artifact = uow.artifacts.get(record.artifact_id)
             case = uow.cases.get(artifact.case_id) if artifact else None
             if (artifact is None or case is None or case.status in ("deleted", "deleting")
@@ -61,16 +64,13 @@ class TransportBindings:
     def message(self, permit, receipt):
         with self.db.uow() as uow:
             self._outbox(uow, permit)
-            return any(record.intent.delivery_target_id == permit.delivery_target_id
-                       and record.transport_result is not None
-                       and record.transport_result.receipt == receipt
-                       for record in uow.outbox.list_by_owner(permit.owner_id))
+            return uow.outbox.receipt_exists(permit.owner_id, permit.delivery_target_id, receipt)
 
 
 def live_transport(settings, bindings):
     import httpx
     import ssl
-    from tsr.adapters.max import MaxTransport
+    from tsr.adapters.max import MaxTransport, DatabaseRequestGate
 
     if settings.max_token is None or not settings.max_token.get_secret_value():
         raise ValueError("max_token_not_configured")
@@ -81,4 +81,5 @@ def live_transport(settings, bindings):
     return MaxTransport(client, settings.max_token.get_secret_value(), bindings.recipient,
                         attachment_resolver=bindings.attachment, attachment_writer=bindings.write_attachment,
                         message_authorizer=bindings.message, base_url=settings.max_api_url,
-                        timeout=settings.network_timeout_seconds, max_upload_bytes=settings.max_file_bytes)
+                        timeout=settings.network_timeout_seconds, max_upload_bytes=settings.max_file_bytes,
+                        request_gate=DatabaseRequestGate(bindings.db,settings.bot_scope))

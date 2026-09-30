@@ -1,0 +1,76 @@
+{
+  "schema_version": "1.0.0",
+  "pack_id": "real-golden",
+  "version": "1.1.0",
+  "data_kind": "synthetic",
+  "review": {
+    "status": "draft",
+    "reviewer_id": null,
+    "reviewed_at": null,
+    "review_due_at": null
+  },
+  "cases": [
+    {
+      "scenario": "first_purchase",
+      "profile_ref": {
+        "id": "manual-wheelchair-technical",
+        "version": "1.1.0"
+      },
+      "snapshot_id": "079f6eca-6fb4-5b90-b7ca-c21d0d290113",
+      "expected": {
+        "class": "complete",
+        "price_minor": 1450000,
+        "certificate_minor": 1000000,
+        "coverage_minor": 1000000,
+        "gap_minor": 450000,
+        "total_minor": null,
+        "certificate_use": "conditional",
+        "pricing_status": "incomplete"
+      }
+    },
+    {
+      "scenario": "mismatch",
+      "profile_ref": {
+        "id": "manual-wheelchair-technical",
+        "version": "1.1.0"
+      },
+      "snapshot_id": "970ffe73-ec84-5bb9-a083-3a7f9d233d9f",
+      "expected": {
+        "field_key": "seat_width",
+        "required_mm": "405",
+        "offer_mm": "380",
+        "class": "mismatch"
+      }
+    },
+    {
+      "scenario": "unknown_offer",
+      "profile_ref": {
+        "id": "manual-wheelchair-technical",
+        "version": "1.1.0"
+      },
+      "snapshot_id": "ab3e7c5d-e106-5326-8867-eb21457fb49e",
+      "expected": {
+        "price_kind": "from",
+        "price_minor": null,
+        "coverage_minor": null,
+        "gap_minor": null,
+        "total_minor": null
+      }
+    },
+    {
+      "scenario": "certificate_not_applicable",
+      "profile_ref": {
+        "id": "manual-wheelchair-technical",
+        "version": "1.1.0"
+      },
+      "snapshot_id": "079f6eca-6fb4-5b90-b7ca-c21d0d290113",
+      "expected": {
+        "certificate_applicable_declared": "no",
+        "certificate_use": "not_applicable",
+        "coverage_minor": 0,
+        "gap_minor": 1450000,
+        "total_minor": null
+      }
+    }
+  ]
+}

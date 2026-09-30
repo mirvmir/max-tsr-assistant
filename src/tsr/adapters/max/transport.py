@@ -14,7 +14,7 @@ from uuid import UUID, uuid4
 import httpx
 from tsr.contracts import (AttachmentTokenRecord, CallbackAnswer, CallbackReceipt, IdentityRecord,
                           MaterialPermit, MessageReceipt, Result, SendPermit, TransportResult,
-                          UploadPermit, UploadResult, content_hash)
+                          UploadPermit, UploadResult, SubscriptionHealth, content_hash)
 from .presenter import MaxMessagePayload
 
 
@@ -23,13 +23,6 @@ class AuthorizedAttachment:
     record: AttachmentTokenRecord
     material_permit: MaterialPermit
     manifest_hash: str
-
-
-@dataclass(frozen=True)
-class SubscriptionHealth:
-    healthy: bool
-    reason_code: str
-    secret_verified: bool = False
 
 
 class RequestGate:
@@ -54,6 +47,22 @@ class RequestGate:
             self._global.append(now)
             if recipient is not None:
                 self._recipient[recipient] = now
+        return None
+
+
+class DatabaseRequestGate:
+    """Shared bot budget with a conservative per-process sliding gate as well."""
+    def __init__(self,db,bot_scope,clock=None):
+        self.db,self.bot_scope=db,bot_scope
+        self.clock=clock or (lambda:datetime.now(timezone.utc))
+        self.local=RequestGate()
+
+    def admit(self,recipient=None):
+        retry=self.local.admit(recipient)
+        if retry is not None: return retry
+        now=self.clock()
+        if not self.db.admit_quota(self.bot_scope,None,'max_api',now,30,1): return 1.0
+        if recipient is not None and not self.db.admit_quota(self.bot_scope,recipient,'max_private_recipient',now,2,1): return 1.0
         return None
 
 
@@ -143,7 +152,7 @@ class MaxTransport:
             identity = self._recipient(permit)
         except (ValueError, LookupError, PermissionError):
             return self._rejected('recipient_not_authorized')
-        retry = self._gate.admit(permit.delivery_target_id)
+        retry = self._gate.admit(permit.owner_id)
         if retry is not None:
             return self._rejected('local_rate_limit', True, retry)
         _, data, failure = self._request('POST', '/messages', params={'user_id':identity.platform_user_id,'disable_link_preview':'true'}, body=body)
@@ -193,7 +202,7 @@ class MaxTransport:
                 raise ValueError('payload_binding_mismatch')
         except (ValueError, LookupError, PermissionError):
             return self._rejected('message_not_authorized')
-        retry = self._gate.admit(permit.delivery_target_id)
+        retry = self._gate.admit(permit.owner_id)
         if retry is not None:
             return self._rejected('local_rate_limit', True, retry)
         _, data, failure = self._request('PUT','/messages',params={'message_id':receipt.message_id},body=payload.as_api_dict())
@@ -211,7 +220,7 @@ class MaxTransport:
                 raise ValueError('callback_binding_mismatch')
         except (ValueError, LookupError, PermissionError):
             return self._rejected('callback_not_authorized')
-        retry = self._gate.admit(permit.delivery_target_id)
+        retry = self._gate.admit(permit.owner_id)
         if retry is not None:
             return self._rejected('local_rate_limit', True, retry)
         _, data, failure = self._request('POST','/answers',params={'callback_id':answer.platform_callback_id},
@@ -270,17 +279,17 @@ class MaxTransport:
     def inspect_subscription(self, expected_url: str) -> SubscriptionHealth:
         retry = self._gate.admit()
         if retry is not None:
-            return SubscriptionHealth(False,'local_rate_limit')
+            return SubscriptionHealth(status='unreachable', checked_at=self._clock(), reason_code='local_rate_limit')
         _, data, failure = self._request('GET','/subscriptions')
         if failure:
-            return SubscriptionHealth(False,'subscription_unavailable')
+            return SubscriptionHealth(status='unreachable', checked_at=self._clock(), reason_code='subscription_unavailable')
         subscriptions = data.get('subscriptions')
         if not isinstance(subscriptions,list):
-            return SubscriptionHealth(False,'invalid_subscription_response')
+            return SubscriptionHealth(status='unreachable', checked_at=self._clock(), reason_code='invalid_subscription_response')
         required = {'message_created','message_callback','bot_started'}
         for subscription in subscriptions:
             if isinstance(subscription,dict) and subscription.get('url') == expected_url:
                 types = subscription.get('update_types')
                 if isinstance(types,list) and required.issubset(types):
-                    return SubscriptionHealth(True,'url_and_event_types_verified')
-        return SubscriptionHealth(False,'subscription_missing_or_incomplete')
+                    return SubscriptionHealth(status='active', checked_at=self._clock(), reason_code='url_and_event_types_verified')
+        return SubscriptionHealth(status='missing', checked_at=self._clock(), reason_code='subscription_missing_or_incomplete')

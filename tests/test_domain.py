@@ -4,7 +4,7 @@ from uuid import UUID, uuid4
 
 import pytest
 
-from tsr.contracts import (BooleanValue, Delivery, EvaluationPolicy, Fact, InputRevision,
+from tsr.contracts import (BooleanValue, CodeValue, Delivery, EvaluationPolicy, Fact, InputRevision,
     Money, MoneyValue, QuantityValue, VersionRef)
 from tsr.domain.matching import compare_offer
 from tsr.domain.pricing import quote_purchase, validate_money_input
@@ -13,6 +13,25 @@ from tsr.operations.releases import load_demo_release
 
 ROOT = Path(__file__).parents[1]
 NOW = datetime(2026, 9, 29, 12, tzinfo=timezone.utc)
+
+
+def test_availability_conflicting_alternatives_use_the_same_enum_as_known():
+    from tsr.domain.catalog import validate_catalog
+    release=load_demo_release(ROOT)
+    offer=release.offers[0]
+    evidence=offer.availability.evidence or offer.price.evidence
+    conflict=Fact(status='conflicting',reason_code='stock_conflict',alternatives=(
+        Fact.known(CodeValue(value='in_stock'),evidence),
+        Fact.known(CodeValue(value='banana'),evidence)))
+    invalid=release.catalog.model_copy(update={'offers':(
+        offer.model_copy(update={'availability':conflict}),)+release.offers[1:]})
+    report=validate_catalog(invalid,(release.profile,),release.sources)
+    assert not report.valid
+    assert any(error.path=='offers[0].availability.alternatives[1].value.value' for error in report.errors)
+    valid=conflict.model_copy(update={'alternatives':(conflict.alternatives[0],
+        Fact.known(CodeValue(value='on_order'),evidence))})
+    corrected=invalid.model_copy(update={'offers':(offer.model_copy(update={'availability':valid}),)+release.offers[1:]})
+    assert validate_catalog(corrected,(release.profile,),release.sources).valid
 
 
 def input_for(release, **changes):

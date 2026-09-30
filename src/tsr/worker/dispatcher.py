@@ -2,10 +2,12 @@
 from __future__ import annotations
 
 from concurrent.futures import Future, ProcessPoolExecutor, ThreadPoolExecutor
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime, timedelta, timezone
 import logging
+import json
 import multiprocessing
+import re
 import signal
 import time
 from uuid import uuid4
@@ -15,6 +17,30 @@ from tsr.domain.documents import build_document_model
 from tsr.worker.recovery import classify_retry
 
 logger = logging.getLogger("tsr.worker")
+
+
+class SafeJSONFormatter(logging.Formatter):
+    """Allowlisted machine events and opaque UUIDs only; no exception text."""
+    def format(self, record):
+        event = str(record.msg)
+        data = {"event": event if re.fullmatch(r"[a-z_]{1,80}",event) else "worker_event", "level": record.levelname.lower()}
+        for key in ("job_id","trace_id","correlation_id"):
+            value = getattr(record,key,None)
+            if value is not None and re.fullmatch(r"[0-9a-fA-F-]{36}",str(value)):
+                data[key] = str(value)
+        code = getattr(record,"code",None)
+        if code is not None and re.fullmatch(r"[A-Za-z0-9_.-]{1,80}",str(code)):
+            data["code"] = str(code)
+        return json.dumps(data,separators=(",",":"))
+
+
+def configure_worker_logging():
+    if not any(isinstance(handler.formatter,SafeJSONFormatter) for handler in logger.handlers):
+        handler=logging.StreamHandler()
+        handler.setFormatter(SafeJSONFormatter())
+        logger.addHandler(handler)
+    logger.setLevel(logging.INFO)
+    logger.propagate=False
 
 
 def _render_in_child(request: RenderRequest):
@@ -36,10 +62,12 @@ class ActiveRender:
 class ActiveDelivery:
     claim: ClaimedJob
     future: Future
+    started: float = field(default_factory=time.monotonic)
 
 
 class Worker:
     def __init__(self, settings, db, application, files, transport, *, worker_id=None):
+        configure_worker_logging()
         self.settings, self.db, self.application = settings, db, application
         self.files, self.transport = files, transport
         self.worker_id = worker_id or "worker-" + uuid4().hex
@@ -50,6 +78,9 @@ class Worker:
         self.stopping = False
         self.last_heartbeat = 0.0
         self.last_recovery = 0.0
+        self.last_maintenance = 0.0
+        self.maintenance_pool = ThreadPoolExecutor(max_workers=1, thread_name_prefix="tsr-maintenance")
+        self.maintenance_future: Future | None = None
 
     def _new_render_pool(self):
         return ProcessPoolExecutor(max_workers=1, mp_context=multiprocessing.get_context("spawn"))
@@ -79,7 +110,18 @@ class Worker:
             claim = uow.work.claim_next(kind, self.worker_id, self._now(), self.settings.lease_seconds,
                                         bot_scope=self.settings.bot_scope)
             uow.commit()
-            return claim
+        if claim:
+            created=claim.created_at or claim.next_attempt_at
+            self._metric('queue.'+kind,max(0,(self._now()-created).total_seconds()))
+        return claim
+
+    def _metric(self,name,elapsed):
+        if self.db is None:
+            return
+        try:
+            self.db.record_operation_metric(self.settings.bot_scope,name,elapsed,self._now())
+        except Exception:
+            logger.error('operation_metric_failed')
 
     def _error(self, code="TEMPORARY_FAILURE", safe=True):
         return DomainError(code=code, retryability="safe" if safe else "none",
@@ -87,6 +129,9 @@ class Worker:
 
     def _failure(self, claim, error):
         now = self._now()
+        code=error.code.value if hasattr(error.code,'value') else str(error.code)
+        logger.warning("work_outcome", extra={"job_id": str(claim.job_id), "trace_id":str(claim.trace_id),
+                       "correlation_id":getattr(error,'correlation_id',None),"code":code})
         if claim.kind == "deliver_outbox":
             # The durable job fence and outbox state are checked under the same
             # locks as begin_send. A pre-send upload failure cannot be inferred
@@ -117,7 +162,6 @@ class Worker:
                 uow.commit()
         else:
             self.application.fail_work(claim, error, now)
-        logger.warning("work_outcome", extra={"job_id": str(claim.job_id), "code": str(error.code)})
 
     def _start_render(self, claim):
         checked = self.application.get_render_context(claim)
@@ -134,6 +178,7 @@ class Worker:
                                 manifest_hash=context.manifest.manifest_hash,
                                 document_kind=spec.document_kind, format=spec.format,
                                 template_ref=spec.template_ref, model=model.value,
+                                template_registry=context.template_registry,
                                 max_output_bytes=self.settings.max_file_bytes)
         self.render = ActiveRender(claim, context, self.render_pool.submit(_render_in_child, request), time.monotonic())
 
@@ -199,10 +244,12 @@ class Worker:
     def _poll(self):
         if self.render is not None and time.monotonic() - self.render.started >= self.settings.render_timeout_seconds:
             active, self.render = self.render, None
+            self._metric('compute.render_artifact',time.monotonic()-active.started)
             self._stop_render_pool()
             self._failure(active.claim, self._error())
         if self.render is not None and self.render.future.done():
             active, self.render = self.render, None
+            self._metric('compute.render_artifact',time.monotonic()-active.started)
             try:
                 result = active.future.result()
                 if not result.ok:
@@ -230,6 +277,7 @@ class Worker:
                 self._failure(active.claim, self._error())
         if self.delivery is not None and self.delivery.future.done():
             active, self.delivery = self.delivery, None
+            self._metric('compute.deliver_outbox',time.monotonic()-active.started)
             try:
                 result = active.future.result()
                 if not result.ok:
@@ -237,7 +285,7 @@ class Worker:
             except Exception:
                 # Recovery preserves sending as unknown if the delivery thread
                 # escaped before its own result commit; it never resends it.
-                logger.error("delivery_handler_failed", extra={"job_id": str(active.claim.job_id)})
+                logger.error("delivery_handler_failed", extra={"job_id": str(active.claim.job_id),"trace_id":str(active.claim.trace_id)})
 
     def _heartbeat(self):
         now = self._now()
@@ -249,9 +297,39 @@ class Worker:
                 uow.commit()
             if renewed:
                 active.claim = active.claim.model_copy(update={"lease_until": now + timedelta(seconds=self.settings.lease_seconds)})
-        record_heartbeat = getattr(self.db, "record_worker_heartbeat", None)
-        if record_heartbeat:
-            record_heartbeat(self.worker_id, now, self.settings.release_commit)
+        self.db.record_worker_heartbeat(self.worker_id, now, self.settings.release_commit,
+            bot_scope=self.settings.bot_scope, capacity={"render_slots": 1, "delivery_slots": 1,
+                "render_active": int(self.render is not None), "delivery_active": int(self.delivery is not None)})
+
+    def _maintenance(self):
+        from tsr.contracts import SubscriptionHealth
+        from tsr.operations.backup import purge_backups
+        from tsr.operations.maintenance import run_retention
+
+        now = self._now()
+        configured = bool(self.settings.max_token and self.settings.max_token.get_secret_value())
+        if configured:
+            health = self.transport.inspect_subscription(self.settings.webhook_url or "")
+        else:
+            health = SubscriptionHealth(status="missing", checked_at=now, bot_scope=self.settings.bot_scope,
+                                        reason_code="max_unconfigured")
+        self.db.record_subscription_health(self.settings.bot_scope, health.model_copy(update={"bot_scope":self.settings.bot_scope}))
+        report = run_retention(now, self.settings.retention_policy, db=self.db, files=self.files, bot_scope=self.settings.bot_scope)
+        purge_backups(self.settings.backup_root, self.settings.backup_policy, now)
+        return report
+
+    def _poll_maintenance(self, current):
+        if self.maintenance_future is not None and self.maintenance_future.done():
+            try:
+                report = self.maintenance_future.result()
+                if report.errors:
+                    logger.warning("maintenance_incomplete")
+            except Exception:
+                logger.error("maintenance_failed")
+            self.maintenance_future = None
+        if not self.stopping and self.maintenance_future is None and current - self.last_maintenance >= self.settings.maintenance_interval_seconds:
+            self.maintenance_future = self.maintenance_pool.submit(self._maintenance)
+            self.last_maintenance = current
 
     def recover(self):
         # Application owns the single semantic commit: terminal recovery and
@@ -271,6 +349,7 @@ class Worker:
         if current - self.last_recovery >= self.settings.lease_seconds:
             self.recover()
             self.last_recovery = current
+        self._poll_maintenance(current)
         if self.stopping:
             return 0
         started = 0
@@ -279,11 +358,14 @@ class Worker:
             if claim is None:
                 break
             try:
+                began=time.monotonic()
                 result = self.application.handle_inbox(claim)
                 if not result.ok:
                     self._failure(claim, result.error)
             except Exception:
                 self._failure(claim, self._error())
+            finally:
+                self._metric('compute.process_inbox',time.monotonic()-began)
             started += 1
         # Capacity is checked BEFORE acquiring the rendering lease.
         if self.render is None:
@@ -319,6 +401,7 @@ class Worker:
             self._poll()
             time.sleep(0.05)
         self.delivery_pool.shutdown(wait=self.delivery is None, cancel_futures=True)
+        self.maintenance_pool.shutdown(wait=False, cancel_futures=True)
 
     def run(self):
         def stop(_signal, _frame):

@@ -353,3 +353,139 @@ def test_crashed_renderer_exhaustion_through_worker_is_terminal_and_fenced(db):
             assert not uow.artifacts.list_by_case(case.case_id)
     finally:
         worker.close()
+
+
+def test_idle_worker_heartbeat_is_persistent_and_scoped(db):
+    worker = Worker(_settings(bot_scope='operational-worker'),db,None,None,None,worker_id='worker-operational')
+    now = datetime.now(timezone.utc)
+    worker._now = lambda:now
+    try:
+        worker._heartbeat()
+        health = db.collect_health(now,'operational-worker')
+        assert health.worker_count == 1 and health.worker_heartbeat_age == 0
+        assert db.collect_health(now,'other-bot').worker_count == 0
+    finally:
+        worker.close()
+
+
+def test_scheduled_maintenance_is_single_and_does_not_block_heartbeat(db,tmp_path):
+    import os
+    import threading
+    from tsr.adapters.files import PrivateFiles
+    settings=_settings(bot_scope='maintenance-worker',backup_root=tmp_path/'backups',private_root=tmp_path/'blobs')
+    settings.backup_root.mkdir()
+    old=settings.backup_root/(uuid4().hex+'.tsrb')
+    journal=settings.backup_root/'current.tsrj'
+    old.write_bytes(b'old synthetic encrypted backup')
+    journal.write_bytes(b'independent synthetic current deletion journal')
+    stale=time.time()-8*86400
+    os.utime(old,(stale,stale));os.utime(journal,(stale,stale))
+    files=PrivateFiles(settings.private_root,db.crypto)
+    worker=Worker(settings,db,None,files,None)
+    release=threading.Event()
+    entered=threading.Event()
+    real_maintenance=worker._maintenance
+    def delayed_maintenance():
+        entered.set()
+        assert release.wait(3)
+        return real_maintenance()
+    worker._maintenance=delayed_maintenance
+    try:
+        worker._poll_maintenance(settings.maintenance_interval_seconds+1)
+        assert entered.wait(1)
+        first=worker.maintenance_future
+        worker._poll_maintenance(settings.maintenance_interval_seconds*2+2)
+        assert worker.maintenance_future is first
+        worker._heartbeat()
+        assert db.collect_health(datetime.now(timezone.utc),settings.bot_scope).worker_count==1
+        release.set()
+        assert not first.result(timeout=3).errors
+        assert db.read_subscription_health(settings.bot_scope).status=='missing'
+        assert not old.exists() and journal.exists()
+    finally:
+        release.set()
+        worker.close()
+
+
+def test_worker_passes_exact_registry_to_child_and_child_rejects_foreign_renderer():
+    from test_documents import frozen_manifest,renamed_registry
+    from tsr.contracts import RenderPayload,RenderJobContext,content_hash
+    from tsr.domain.documents import build_document_request
+    from tsr.worker.dispatcher import _render_in_child
+    frozen=frozen_manifest('purchase')
+    registry=renamed_registry()
+    entry=registry.templates[0]
+    content=frozen.content.model_copy(update={'template_refs':(entry.ref,)})
+    manifest=frozen.model_copy(update={'content':content,'manifest_hash':content_hash(content)})
+    spec=build_document_request(manifest,registry=registry).required_artifacts[0]
+    context=RenderJobContext(manifest=manifest,template_registry=registry,
+        payload=RenderPayload(manifest_id=manifest.manifest_id,bundle_id=uuid4(),artifact_spec=spec))
+    captured=[]
+    class CapturePool:
+        def submit(self,function,request):
+            captured.append(request)
+            result=Future();result.set_result(function(request));return result
+        def shutdown(self,**kwargs): pass
+    worker=Worker(_settings(),None,SimpleNamespace(get_render_context=lambda _:Result.success(context)),None,None)
+    worker.render_pool.shutdown(wait=False,cancel_futures=True)
+    worker.render_pool=CapturePool()
+    try:
+        worker._start_render(_claim())
+        assert captured[0].template_registry==registry
+        assert worker.render.future.result().ok
+        altered=entry.model_copy(update={'assets':(entry.assets[0].model_copy(update={'renderer_id':'untrusted-executable'}),)})
+        bad=registry.model_copy(update={'templates':(altered,)})
+        assert not _render_in_child(captured[0].model_copy(update={'template_registry':bad})).ok
+    finally:
+        worker.render=None
+        worker.close()
+
+
+def test_safe_json_worker_alert_exposes_trace_and_code_without_exception_text():
+    import json
+    import logging
+    from tsr.worker.dispatcher import SafeJSONFormatter
+    trace,job,correlation=uuid4(),uuid4(),uuid4()
+    record=logging.LogRecord('tsr.worker',logging.WARNING,__file__,1,'work_outcome',(),
+        (RuntimeError,RuntimeError('postgres://private-secret@host/personal-content'),None))
+    record.job_id=str(job);record.trace_id=str(trace);record.correlation_id=correlation;record.code='TEMPORARY_FAILURE'
+    rendered=SafeJSONFormatter().format(record)
+    assert json.loads(rendered)=={'event':'work_outcome','level':'warning','job_id':str(job),
+                                 'trace_id':str(trace),'correlation_id':str(correlation),'code':'TEMPORARY_FAILURE'}
+    assert 'private-secret' not in rendered and 'personal-content' not in rendered
+
+
+def test_production_operation_metrics_are_atomic_scoped_and_bounded(db):
+    import math
+    now=datetime.now(timezone.utc)
+    db.record_operation_metric('metrics-own','compute.render_artifact',0.2,now)
+    db.record_operation_metric('metrics-own','compute.render_artifact',0.4,now)
+    db.record_operation_metric('metrics-foreign','compute.render_artifact',0.8,now)
+    with db.uow() as unit:
+        row=unit.connection.execute('SELECT * FROM operation_metrics WHERE bot_scope=%s',('metrics-own',)).fetchone()
+        assert row['count']==2 and row['total_seconds']==pytest.approx(0.6)
+        assert row['last_seconds']==0.4 and row['max_seconds']==0.4
+        assert 'owner_id' not in row and 'job_id' not in row and 'trace_id' not in row
+    for bad in (-1,math.nan,math.inf):
+        with pytest.raises(ValueError): db.record_operation_metric('metrics-own','compute.render_artifact',bad,now)
+    with pytest.raises(ValueError): db.record_operation_metric('metrics-own','personal-input',1,now)
+    metrics=db.collect_health(now,'metrics-own').operation_metrics
+    assert len(metrics)==1 and metrics[0].name=='compute.render_artifact' and metrics[0].count==2
+    assert metrics[0].max_seconds==0.4
+
+
+def test_worker_records_queue_delay_from_trusted_claim_metadata(db):
+    from tsr.adapters.max import parse_update,persist_update
+    settings=_settings(bot_scope='fixture')
+    now=datetime.now(timezone.utc)
+    body=(Path(__file__).parent/'fixtures/max/text.json').read_bytes()
+    assert persist_update(db,settings,parse_update(body),now)
+    worker=Worker(settings,db,None,None,None)
+    try:
+        claim=worker._claim('process_inbox')
+        assert claim is not None and claim.created_at is not None
+        metrics=db.collect_health(datetime.now(timezone.utc),settings.bot_scope).operation_metrics
+        assert len(metrics)==1 and metrics[0].name=='queue.process_inbox' and metrics[0].count==1
+        assert metrics[0].last_seconds>=0
+    finally:
+        worker.close()

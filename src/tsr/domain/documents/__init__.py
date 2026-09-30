@@ -3,6 +3,8 @@ from tsr.contracts import (
     ArtifactSpec, DocumentField, DocumentModel, DocumentRequest, DocumentSection,
     DocumentTable, FieldError, Result, ValidationReport, content_hash,
 )
+from tsr.domain.matching import supplier_questions
+from tsr.domain.conversation import supplier_question_text
 
 
 KINDS = {
@@ -34,6 +36,20 @@ STATUS = {
     'required': 'Требуется по модельному маршруту', 'optional': 'При наличии',
     'not_applicable': 'Не применимо', 'allowed_by_declared_data': 'По заявленным данным',
     'not_accepted': 'Продавец не принимает сертификат',
+}
+PRICING_EXPLANATIONS = {
+    'certificate.not_applicable': 'Сертификат неприменим по указанным сведениям',
+    'certificate.not_accepted': 'Продавец не принимает сертификат',
+    'price.not_exact': 'Точная цена этой комплектации неизвестна',
+    'delivery.not_known': 'Условия и стоимость доставки неизвестны',
+    'certificate.conditions_not_confirmed': 'Условия применения сертификата не подтверждены',
+    'delivery.paid_by_user': 'Отдельная доставка включена в расчёт при условии, что её оплачивает пользователь',
+    'certificate.applicable_and_accepted': 'Расчёт предполагает, что сертификат применим и продавец его принимает',
+}
+ROUTE_ACTIONS = {
+    'route.synthetic_model': 'Маршрут учебный. Перед обращением уточните действующий порядок',
+    'route.verify_real_rules': 'Проверьте актуальные требования у адресата',
+    'route.no_approval_promise': 'Одобрение обращения не гарантируется',
 }
 
 
@@ -76,11 +92,21 @@ def _field(label, value):
     return DocumentField(label=label, value=str(value))
 
 
-def build_document_request(manifest):
+def build_document_request(manifest, *, registry=None):
     content = manifest.content
     specs = []
     for kind, fmt in KINDS[content.branch]:
-        template = next((ref for ref in content.template_refs if ref.id == TEMPLATE_IDS[kind]), None)
+        if registry is None:
+            template = next((ref for ref in content.template_refs if ref.id == TEMPLATE_IDS[kind]), None)
+        else:
+            if registry.schema_version != '1.0.0':
+                raise ValueError('Unsupported template registry')
+            matches = [entry.ref for entry in registry.templates
+                       if entry.ref in content.template_refs and entry.document_kind == kind
+                       and any(asset.format == fmt for asset in entry.assets)]
+            if len(matches) != 1:
+                raise ValueError('Frozen template reference unavailable or ambiguous')
+            template = matches[0]
         if template is None:
             raise ValueError('Frozen template reference unavailable')
         specs.append(ArtifactSpec(document_kind=kind, format=fmt, template_ref=template))
@@ -99,9 +125,13 @@ def build_document_model(manifest, document_kind):
     inp, offer, comparison, pricing = (content.input_revision, content.offer_snapshot,
                                        content.comparison, content.pricing)
     missing = list(content.missing_fields)
-    warnings = ['Сведения подтверждены пользователем и не подтверждают медицинскую пригодность изделия.']
+    warnings = ['Пользовательские сведения подтверждены пользователем. Медицинская пригодность изделия не установлена.']
     if content.case_mode == 'demo':
-        warnings.append('ДЕМОНСТРАЦИОННЫЙ ЧЕРНОВИК. Все предложения и условия являются синтетическими.')
+        if offer.data_kind == 'synthetic':
+            warnings.append('ДЕМОНСТРАЦИОННЫЙ ЧЕРНОВИК. Предложение, пользовательские сведения и шаблон являются синтетическими.')
+        else:
+            warnings.append('ДЕМОНСТРАЦИОННЫЙ ЧЕРНОВИК. Пользовательские сведения и шаблон являются учебными. '
+                            'Параметры и цена предложения приведены по данным публичного снимка источника.')
     if content.branch == 'support':
         warnings.append('Модельный маршрут не является утверждённым порядком обращения. '
                         'Это не официальная форма и не обещание одобрения.')
@@ -124,15 +154,20 @@ def build_document_model(manifest, document_kind):
                     _field('Регион', inp.region_code or 'Не указано')) + document_fields,
         ))
     if document_kind in ('application', 'purchase_card', 'product_card'):
+        supplier=getattr(content,'supplier',None)
         sections.append(DocumentSection(
             title='Выбранная комплектация', fields=(
                 _field('Производитель', offer.variant.manufacturer), _field('Модель', offer.variant.model),
                 _field('Модификация', offer.variant.modification), _field('Комплектация', offer.variant.configuration),
-                _field('Артикул', offer.seller_sku), _field('Поставщик', offer.supplier_id),
+                _field('Код предложения продавца', offer.seller_sku), _field('Поставщик', supplier.display_name if supplier else offer.supplier_id),
+                _field('Основание сведений о предложении', 'Публичный снимок' if offer.data_kind=='public_snapshot' else 'Синтетическое предложение'),
                 _field('Наличие', _fact(offer.availability)),
                 _field('Дата снимка предложения', offer.observed_at.isoformat()),
             ),
         ))
+        if supplier and supplier.contacts:
+            sections.append(DocumentSection(title='Контакты поставщика',
+                fields=tuple(_field('Контакт',_fact(contact)) for contact in supplier.contacts)))
         rows = tuple((LABELS.get(field.field_key, field.field_key), _value(field.required_value),
                       _fact(field.offer_fact), STATUS.get(field.status, field.status))
                      for field in comparison.fields)
@@ -140,23 +175,24 @@ def build_document_model(manifest, document_kind):
                           text=STATUS.get(comparison.classification, comparison.classification),
                           tables=(DocumentTable(headers=('Параметр', 'Требование', 'Предложение', 'Результат'), rows=rows),)))
     if document_kind in ('purchase_card', 'product_card'):
+        conditional = pricing.certificate_use == 'conditional'
         sections.append(DocumentSection(title='Цена и расходы', fields=(
             _field('Цена комплектации', _fact(offer.price)),
             _field('Характер цены', {'exact': 'Точная по снимку', 'from': 'От указанной суммы', 'unknown': 'Неизвестно'}[offer.price_kind]),
             _field('Сумма сертификата', _money(pricing.certificate_limit)),
             _field('Применимость сертификата', STATUS.get(pricing.certificate_use, pricing.certificate_use)),
-            _field('Покрытие сертификатом', _money(pricing.coverage)),
-            _field('Разница без доставки', _money(pricing.gap)),
+            _field('Условное покрытие сертификатом' if conditional else 'Покрытие сертификатом', _money(pricing.coverage)),
+            _field('Условная разница без доставки' if conditional else 'Разница без доставки', _money(pricing.gap)),
             _field('Доставка', _fact(pricing.delivery.charge)),
             _field('Условия доставки', _fact(pricing.delivery.terms)),
-            _field('Возможные собственные расходы', _money(pricing.possible_own_total)),
+            _field('Условные собственные расходы' if conditional else 'Возможные собственные расходы', _money(pricing.possible_own_total)),
             _field('Статус расчёта', {'calculated':'Расчёт по указанным данным', 'conditional':'Условный расчёт',
                                       'incomplete':'Неполный расчёт'}[pricing.status]),
-        ), text='; '.join((*pricing.reasons, *pricing.assumptions))))
+        ), text='; '.join(PRICING_EXPLANATIONS.get(key, 'Для расчёта требуется дополнительное уточнение')
+                          for key in (*pricing.reasons, *pricing.assumptions))))
         sections.append(DocumentSection(title='Вопросы поставщику', text='\n'.join(
-            LABELS.get(question.field_key, question.field_key or question.category)
-            + ': требуется уточнить ' + question.category for question in comparison.questions
-        ) or 'Вопросы из сравнения отсутствуют.'))
+            supplier_question_text(question) for question in supplier_questions(comparison, pricing, content.route)
+        ) or 'Вопросы поставщику по указанным сведениям отсутствуют.'))
     if document_kind in ('checklist', 'application'):
         route = content.route
         if route is None:
@@ -171,13 +207,19 @@ def build_document_model(manifest, document_kind):
                         (item.label, STATUS.get(item.applicability, item.applicability), STATUS.get(item.user_status, item.user_status))
                         for item in route.checklist)),),
                     text='Перечень синтетический. Проверьте актуальные требования у адресата.'))
-            sections.append(DocumentSection(title='Следующие действия', text='\n'.join(route.next_steps) or 'Уточните актуальный порядок у адресата.'))
+            sections.append(DocumentSection(title='Следующие действия', text='\n'.join(
+                ROUTE_ACTIONS.get(step, 'Уточните дальнейшие действия у адресата' if step.startswith('route.') else step)
+                for step in route.next_steps) or 'Уточните актуальный порядок у адресата.'))
             missing.extend(route.missing_fields)
     versions = (
         ('Профиль', content.category_profile_ref), ('Сравнение', content.matching_algorithm_ref),
         ('Расчёт', content.pricing_algorithm_ref), ('Генератор', content.generator_ref),
     )
     fields = tuple(_field(label, f'{ref.id} {ref.version}') for label, ref in versions)
+    for key,label in (('catalog_ref','Каталог'),('data_release_ref','Пакет данных')):
+        ref=getattr(content,key,None)
+        if ref:
+            fields+=(_field(label,f'{ref.id} {ref.version}'),)
     if content.route_ref:
         fields += (_field('Маршрут', f'{content.route_ref.id} {content.route_ref.version}'),)
     fields += tuple(_field('Шаблон', f'{ref.id} {ref.version}') for ref in content.template_refs)

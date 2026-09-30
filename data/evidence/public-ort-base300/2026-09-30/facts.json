@@ -1,0 +1,56 @@
+{
+  "source_id": "public-ort-base300",
+  "url": "https://ortonica.ru/catalog/invalidnye_kolyaski/mehanicheskie_kolyaski/5059/",
+  "observed_at": "2026-09-30T00:52:13.252349Z",
+  "retrieval": "Direct HTTPS GET; HTTP200; factual extraction only, not full licensed page archive",
+  "html_sha256": "a1176fbe2dbd61f35bc5e1234614f1ed1c67270080fb7acce713bb3719fcb869",
+  "review": {
+    "status": "reviewed",
+    "reviewer_id": "codex-root-public-fact-audit",
+    "reviewed_at": "2026-09-30T01:10:11.200322Z",
+    "review_due_at": "2026-10-07T01:10:11.200322Z"
+  },
+  "locators": {
+    "selected_offer": "Ortonica characteristicsOrderEditorConfig.selectedOfferId → OFFERS[ID] array",
+    "price": "Selected item-price record and visible price; cross-checked against SEO and JSON-LD",
+    "availability": "Selected offer CAN_BUY/MAX_QUANTITY or JSON-LD/visible stock labels"
+  },
+  "selected_offer": {
+    "sku_id": "5055",
+    "name": "Base 300 (40)",
+    "published_articles": [
+      "00031200"
+    ],
+    "seat_width_cm": "40,5",
+    "max_user_mass_kg": "130",
+    "wheel_type": "Литые/пневматические",
+    "folding_mechanism": "Ножницы",
+    "price_rub": "22900",
+    "currency": "RUB",
+    "can_buy": true,
+    "max_quantity": "1000"
+  },
+  "normalization": {
+    "seat_width_mm": "405",
+    "conversion": "decimal cm × 10 = mm, no rounding",
+    "max_user_mass_kg": "130"
+  },
+  "unknowns": {
+    "delivery": "No offer-and-region-specific final delivery charge verified",
+    "certificate_acceptance": "Product-page certificate button/service label observed; checkout eligibility for exact SKU/order not verified",
+    "fund_contract": "No offer-specific fund contract evidence found"
+  },
+  "uncertainties": [
+    "Размер кнопки (40/45) не заменяет физическую ширину из DISPLAY_PROPERTIES (40,5/45,5 см)."
+  ],
+  "independent_verification": {
+    "audit_file": "docs/data/factual-audit.json",
+    "audit_locator": "/10",
+    "audit_sha256": "5c7de56399aa2a36501690bca8910715c7797e88e43075a90fed4d971f1d261e",
+    "all_checks_passed": true,
+    "verified_at": "2026-09-30T01:10:10.929150+00:00",
+    "response_date": "Wed, 30 Sep 2026 01:10:10 GMT",
+    "verified_body_sha256": "5f4d1c1d41863479f4ed2a66d174147e9891aaadd277c8a0cbb4cbe88a244fe3",
+    "review_scope": "Published selected-SKU technical facts only; no medical, legal, delivery/order acceptance approval"
+  }
+}

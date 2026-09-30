@@ -92,6 +92,8 @@ def action(key,label,command_type,payload,guard=None):
 
 def navigation(guard):
     return tuple(action(v,v,"navigate",NavigatePayload(destination=v),guard) for v in ("back","resume","materials","help")) + (
+        action("cases","Мои кейсы","navigate",NavigatePayload(destination="cases",screen="cases"),guard),
+        action("new_case","Новый кейс с актуальным каталогом","navigate",NavigatePayload(destination="new_case"),guard),
         action("delete_prompt","delete","navigate",NavigatePayload(destination="help"),guard),)
 
 
@@ -100,10 +102,11 @@ def draft(case,kind,text,actions=(),flags=()):
                      case_guard=guard_for(case) if case else None,dialog_revision=case.dialog_revision if case else None,flags=tuple(flags))
 
 
-def start_view(profile_ref,help_text=None):
+def start_view(profile_ref,help_text=None,public_catalog=False,case_mode="demo"):
     actions=(action("role_self","Для себя","start_case",StartCasePayload(category_ref=profile_ref,requested_role="self")),
              action("role_representative","Для другого человека","start_case",StartCasePayload(category_ref=profile_ref,requested_role="representative")))
-    return draft(None,"start",help_text or "ДЕМОНСТРАЦИЯ · предложения и сведения синтетические.\nСравним точные комплектации и подготовим материалы. Кто обращается?",actions,("synthetic_demo",))
+    provenance=("ДЕМОНСТРАЦИЯ · вымышленные сведения пользователя; каталог — публичные снимки продавцов." if public_catalog else "ДЕМОНСТРАЦИЯ · предложения и сведения синтетические.") if case_mode=="demo" else "Техническое сравнение по указанным сведениям; не заменяет назначения."
+    return draft(None,"start",help_text or provenance+"\nСравним точные комплектации и подготовим материалы. Кто обращается?",actions+(action("cases","Мои кейсы","navigate",NavigatePayload(destination="cases",screen="cases")),),("synthetic_demo",) if case_mode=="demo" else ())
 
 
 def input_view(case,rule,current=None):
@@ -134,8 +137,11 @@ def candidate_view(case,candidate,label,page=0):
 
 
 def pricing_lines(quote):
+    conditional=quote.certificate_use=="conditional"
+    coverage_label="Условное покрытие сертификатом" if conditional else "Покрытие сертификатом"
+    gap_label="Условная разница без доставки" if conditional else "Доплата за изделие"
     lines=["Цена комплектации: "+money_text(quote.price),"Лимит сертификата: "+money_text(quote.certificate_limit),
-           "Покрытие сертификатом: "+money_text(quote.coverage),"Доплата за изделие: "+money_text(quote.gap)]
+           coverage_label+": "+money_text(quote.coverage),gap_label+": "+money_text(quote.gap)]
     cert={"allowed_by_declared_data":"Применимость по заявленным сведениям; условия нужно проверить у продавца",
           "conditional":"Расчёт условный: применимость сертификата требует уточнения", "not_accepted":"Продавец не принимает сертификат", "not_applicable":"Сертификат неприменим", "unknown":"Применимость сертификата неизвестна"}
     lines.append(cert[quote.certificate_use])
@@ -149,7 +155,7 @@ def pricing_lines(quote):
         lines.append("Условия доставки противоречат друг другу; уточните у продавца")
     else:
         lines.append("Условия и стоимость доставки неизвестны")
-    lines.append("Возможные собственные расходы: "+money_text(quote.possible_own_total))
+    lines.append(("Условные собственные расходы: " if conditional else "Возможные собственные расходы: ")+money_text(quote.possible_own_total))
     if "delivery.paid_by_user" in quote.assumptions:
         lines.append("Отдельная доставка включена в расчёт условно, если вы оплачиваете её самостоятельно.")
     return lines
@@ -163,7 +169,7 @@ def supplier_question_text(question,profile=None):
     return texts[question.category]
 
 
-def build_comparison_view(comparison_set,case=None,offers=(),suppliers=(),profile=None,sources=()):
+def build_comparison_view(comparison_set,case=None,offers=(),suppliers=(),profile=None,sources=(),catalog_page=None,catalog_count=1,catalog_version=None):
     sections=[];actions=[];g=comparison_set.case_guard
     for number,(result,quote) in enumerate(zip(comparison_set.items,comparison_set.quotes),1):
         offer=next((o for o in offers if o.snapshot_id==result.snapshot_id),None)
@@ -172,9 +178,9 @@ def build_comparison_view(comparison_set,case=None,offers=(),suppliers=(),profil
         if offer:
             heading=f"{number}. {offer.variant.model} · {offer.variant.configuration}"
             supplier=next((s for s in suppliers if s.supplier_id==offer.supplier_id),None)
-            lines.extend((heading,"Продавец: "+(supplier.display_name if supplier else "демонстрационный продавец")))
+            lines.extend((summary_text(heading,100),"Продавец: "+summary_text(supplier.display_name if supplier else "продавец не указан",80)))
             if offer.price_kind=="from":
-                lines.append("Цена «от»: не является точной ценой этой комплектации")
+                lines.append("Наблюдаемая цена: от "+money_text(offer.price.value.value if offer.price.status=="known" else None)+"; нижняя граница, не точная цена комплектации")
         else:
             lines.append(heading)
         lines.append(COMPARISON_LABELS[result.classification])
@@ -189,41 +195,66 @@ def build_comparison_view(comparison_set,case=None,offers=(),suppliers=(),profil
             resolved=tuple(source for source in sources if source.source_id in offer.source_ids)
             titles=tuple(source.title if len(source.title)<=72 else source.title[:72]+"… (название сокращено)" for source in resolved[:2])
             lines.append("Источник: "+(", ".join(titles)+("; есть дополнительные источники" if len(resolved)>2 else "") if titles else "не указан; уточните у продавца"))
-            lines.append("Дата синтетического снимка: "+offer.observed_at.strftime("%d.%m.%Y"))
+            lines.append(("Дата публичного снимка: " if offer.data_kind=="public_snapshot" else "Дата синтетического снимка: ")+offer.observed_at.strftime("%d.%m.%Y"))
+            if offer.data_kind=="public_snapshot":
+                lines.append("Публичные сведения продавца. Техническое сравнение не заменяет назначения.")
         sections.append(section("\n".join(lines),"comparison"))
-        actions.append(action(f"select_{result.snapshot_id}",f"Выбрать {number}: {offer.variant.model if offer else 'вариант'}","select_offer",
+        actions.append(action(f"select_{result.snapshot_id}",f"Выбрать {number}: {summary_text(offer.variant.model,60) if offer else 'вариант'}","select_offer",
                               SelectOfferPayload(snapshot_id=result.snapshot_id,comparison_id=result.comparison_id),g))
+    if catalog_page is not None:
+        provenance="ДЕМОНСТРАЦИЯ: данные пользователя вымышленные; происхождение предложений указано отдельно." if case is None or case.mode=="demo" else "Техническое сравнение не заменяет назначения."
+        version=f" Версия каталога: {catalog_version}." if catalog_version else ""
+        sections.insert(0,section(f"Каталог · страница {catalog_page+1}/{catalog_count}."+version+" "+provenance+" Сначала совпадения по указанным параметрам, затем варианты для уточнения и несоответствия; точная цена сравнивается внутри группы."))
+        for target in (catalog_page-1,catalog_page+1):
+            if 0<=target<catalog_count:
+                actions.append(action(f"catalog_page_{target}",("Следующие предложения" if target>catalog_page else "Предыдущие предложения")+f" · {target+1}/{catalog_count}","navigate",NavigatePayload(destination="resume",screen="catalog",page=target),g))
     return ViewDraft(kind="comparison",title_key="comparison.title",sections=tuple(sections),actions=tuple(actions)+navigation(g),
-                     case_guard=g,dialog_revision=case.dialog_revision if case else None,flags=("synthetic_demo",))
+                     case_guard=g,dialog_revision=case.dialog_revision if case else None,flags=("synthetic_demo",) if case is None or case.mode=="demo" else ())
 
 
 def branch_view(case):
     g=guard_for(case)
     actions=tuple(action(branch,branch,"choose_branch",ChooseBranchPayload(branch=branch),g) for branch in ("purchase","support"))
-    return draft(case,"branch","Выберите нужный результат. Все сведения и предложения в демонстрации синтетические.",actions+navigation(g),("synthetic_demo",))
+    text="Выберите нужный результат. "+("В демонстрации используйте вымышленные сведения пользователя; происхождение предложения показано отдельно." if case.mode=="demo" else "Техническое сравнение не заменяет назначения.")
+    return draft(case,"branch",text,actions+navigation(g),("synthetic_demo",) if case.mode=="demo" else ())
 
 
 def preview_view(case,preview,profile=None,page=0):
     c=preview.proposed_content;i=c.input_revision
-    lines=["ДЕМОНСТРАЦИЯ · синтетические сведения",c.offer_snapshot.variant.model+" · "+c.offer_snapshot.variant.configuration,
+    provenance=("ДЕМОНСТРАЦИЯ · вымышленные сведения пользователя; публичные сведения продавца" if c.offer_snapshot.data_kind=="public_snapshot" else "ДЕМОНСТРАЦИЯ · синтетические сведения") if c.case_mode=="demo" else "Техническое сравнение не заменяет назначения."
+    lines=[provenance,c.offer_snapshot.variant.model+" · "+c.offer_snapshot.variant.configuration,
            "Результат: "+("карточка покупки PDF" if c.branch=="purchase" else "заявление DOCX и PDF, карточка ТСР PDF, чек-лист PDF"),
            "Кто обращается: "+("для себя" if i.role=="self" else "представитель")]
+    if c.supplier:
+        lines.append("Продавец: "+c.supplier.display_name)
+        for contact in c.supplier.contacts:
+            lines.append("Контакт продавца: "+(value_text(contact.value) if contact.status=="known" else "Неизвестно"))
+    if c.catalog_ref:
+        lines.append("Версия каталога: "+c.catalog_ref.version)
     for key,value in i.prescribed.items():
         lines.append(label_field(key,profile)+": "+value_text(value))
     for key in i.unspecified_fields:
         lines.append(label_field(key,profile)+": Не указано")
     lines.append(COMPARISON_LABELS[c.comparison.classification])
+    if c.offer_snapshot.price_kind=="from":
+        lines.append("Наблюдаемая цена: от "+money_text(c.offer_snapshot.price.value.value if c.offer_snapshot.price.status=="known" else None)+"; нижняя граница, не точная цена")
     lines.extend(pricing_lines(c.pricing))
     if c.route:
         lines.extend(("Регион: "+("Учебный регион" if i.region_code=="ru-alt" else i.region_code or "Не указан"),"Маршрут: "+ROUTE_LABELS[c.route.status],
                       "Это модель маршрута. Решение фонда не обещается."))
         for condition in c.route.conditions:
             lines.append(label_field(condition.condition_id)+": "+{"met":"условие выполнено по заявленным данным","not_met":"условие не выполнено","unknown":"неизвестно"}[condition.status])
+        lines.append("Адресат: "+(value_text(c.route.addressee.value) if c.route.addressee.status=="known" else "Неизвестно"))
+        for item in c.route.checklist:
+            lines.append("Документ: "+item.label)
         for key,value in i.document_fields.items():
             lines.append(label_field(key)+": "+value)
     if c.missing_fields:
         lines.append("Не заполнено: "+", ".join(dict.fromkeys(label_field(key,profile) for key in c.missing_fields)))
-    lines.append("Дата синтетического снимка: "+c.offer_snapshot.observed_at.strftime("%d.%m.%Y"))
+    for source in c.sources:
+        if source.source_id in c.offer_snapshot.source_ids:
+            lines.append("Источник: "+source.title+(" · "+source.url if source.url else ""))
+    lines.append(("Дата публичного снимка: " if c.offer_snapshot.data_kind=="public_snapshot" else "Дата синтетического снимка: ")+c.offer_snapshot.observed_at.strftime("%d.%m.%Y"))
     lines.append("Подтверждаете именно этот набор сведений, включая явно незаполненные поля?")
     g=guard_for(case)
     text,count=page_text("\n".join(lines),page)
@@ -235,17 +266,19 @@ def preview_view(case,preview,profile=None,page=0):
     return draft(case,"review",text,actions+navigation(g),c.flags)
 
 
-def materials_view(case,bundles,artifacts,now,historical_artifact_ids=(),page=0):
+def materials_view(case,bundles,artifacts,now,historical_artifact_ids=(),page=0,total_artifacts=None):
     g=guard_for(case);sections=[];actions=[]
     for bundle in sorted(bundles,key=lambda b:b.created_at,reverse=True)[:3]:
         sections.append(section(BUNDLE_LABELS[bundle.status],"status"))
-    ordered=tuple(sorted(artifacts,key=lambda a:(a.published_at,a.document_kind,a.format,str(a.artifact_id)),reverse=True))
-    count=max(1,(len(ordered)+7)//8)
+    ordered=tuple(artifacts) if total_artifacts is not None else tuple(sorted(artifacts,key=lambda a:(a.published_at,a.document_kind,a.format,str(a.artifact_id)),reverse=True))
+    total=len(ordered) if total_artifacts is None else total_artifacts
+    count=max(1,(total+7)//8)
     if page<0 or page>=count:
         raise ValueError("material page unavailable")
     if count>1:
-        sections.append(section(f"Файлы · страница {page+1}/{count}. Всего файлов: {len(ordered)}"))
-    for artifact in ordered[page*8:(page+1)*8]:
+        sections.append(section(f"Файлы · страница {page+1}/{count}. Всего файлов: {total}"))
+    shown=ordered if total_artifacts is not None else ordered[page*8:(page+1)*8]
+    for artifact in shown:
         historical=artifact.case_revision!=case.case_revision or artifact.artifact_id in historical_artifact_ids
         expired=artifact.expires_at<=now
         label=DOCUMENT_LABELS[artifact.document_kind]+" "+artifact.format.upper()
@@ -295,7 +328,7 @@ def edit_view(case,revision,profile,offers=()):
         lines.append(label+": "+summary_text(value_text(value)))
         actions.append(action("edit_field_"+key,"Изменить: "+label,"propose_field",ProposeFieldPayload(field_key=key,unknown=True),g))
     if offers:
-        actions.append(action("change_offer","Сменить предложение","compare_offers",CompareOffersPayload(snapshot_ids=tuple(o.snapshot_id for o in offers[:3])),g))
+        actions.append(action("change_offer","Сменить предложение","navigate",NavigatePayload(destination="resume",screen="catalog"),g))
     if case.selected_snapshot_id is not None:
         actions.append(action("change_branch","Сменить результат","navigate",NavigatePayload(destination="back"),g))
     return draft(case,"input","\n".join(lines),tuple(actions)+navigation(g),("synthetic_demo",))

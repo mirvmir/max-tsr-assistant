@@ -662,10 +662,10 @@ class RetryDeliveryPayload(DTO):
     outbox_id: UUID
     acknowledged_possible_duplicate: bool
 class NavigatePayload(DTO):
-    destination: Literal['back','resume','materials','help']
+    destination: Literal['back','resume','materials','help','new_case','cases']
     page: int = Field(default=0,ge=0)
     resource_id: UUID | None = None
-    screen: Literal['candidate','review','materials'] | None = None
+    screen: Literal['candidate','review','materials','catalog','cases'] | None = None
     @model_validator(mode='after')
     def page_scope(self):
         if self.screen in {'candidate','review'} and self.resource_id is None:
@@ -779,7 +779,7 @@ class CallbackEvent(DTO):
 class StartEvent(DTO):
     payload: str | None = None
 class IgnoredEvent(DTO):
-    pass
+    reason: Literal['unsupported','private_chat_required'] = 'unsupported'
 
 
 class NormalizedEvent(DTO):
@@ -828,6 +828,9 @@ class ManifestContent(DTO):
     route: RouteEvaluation | None = None
     branch: Literal['purchase','support']
     category_profile_ref: VersionRef
+    catalog_ref: VersionRef | None = None
+    data_release_ref: VersionRef | None = None
+    supplier: Supplier | None = None
     matching_algorithm_ref: VersionRef
     pricing_algorithm_ref: VersionRef
     route_ref: VersionRef | None = None
@@ -845,6 +848,7 @@ class ManifestContent(DTO):
         if self.comparison.snapshot_id!=self.offer_snapshot.snapshot_id or self.pricing.snapshot_id!=self.offer_snapshot.snapshot_id: raise ValueError('manifest snapshot mismatch')
         if self.matching_algorithm_ref!=self.comparison.matching_algorithm_ref or self.pricing_algorithm_ref!=self.pricing.pricing_algorithm_ref: raise ValueError('manifest algorithm mismatch')
         if self.route and self.route.route_ref!=self.route_ref: raise ValueError('manifest route mismatch')
+        if self.supplier is not None and self.supplier.supplier_id!=self.offer_snapshot.supplier_id: raise ValueError('manifest supplier mismatch')
         return self
 
 
@@ -932,6 +936,7 @@ class RenderRequest(DTO):
     template_ref: VersionRef
     model: DocumentModel
     max_output_bytes: int = Field(gt=0)
+    template_registry: TemplateRegistry | None = None
 class RenderedBytes(DTO):
     job_id: UUID
     fence_token: int
@@ -993,6 +998,7 @@ class ClaimedJob(WorkRef):
     attempt: int = Field(ge=1)
     next_attempt_at: datetime
     trace_id: UUID
+    created_at: datetime | None = None
 class RenderPayload(DTO):
     manifest_id: UUID
     bundle_id: UUID
@@ -1147,6 +1153,21 @@ class DeleteReport(DTO):
     removed_count: int = 0
     remaining_count: int = 0
     errors: tuple[str,...] = ()
+class QueueHealth(DTO):
+    kind: Literal['process_inbox','render_artifact','deliver_outbox']
+    queued_count: int = Field(default=0,ge=0)
+    running_count: int = Field(default=0,ge=0)
+    oldest_queued_age_seconds: float | None = Field(default=None,ge=0)
+    oldest_running_age_seconds: float | None = Field(default=None,ge=0)
+
+class OperationMetric(DTO):
+    name: str
+    count: int = Field(ge=0)
+    total_seconds: float = Field(ge=0,allow_inf_nan=False)
+    last_seconds: float = Field(ge=0,allow_inf_nan=False)
+    max_seconds: float = Field(ge=0,allow_inf_nan=False)
+    updated_at: datetime
+
 class HealthSnapshot(DTO):
     status: str
     release_commit: str
@@ -1154,10 +1175,20 @@ class HealthSnapshot(DTO):
     worker_heartbeat_age: float | None = None
     oldest_job_age: float | None = None
     counts: Mapping[str,int] = Field(default_factory=dict)
+    queue_delays: tuple[QueueHealth,...] = ()
+    operation_metrics: tuple[OperationMetric,...] = ()
+    worker_count: int = Field(default=0,ge=0)
+    release_ready: bool = False
+    active_release_ref: VersionRef | None = None
+    reasons: tuple[str,...] = ()
 class SubscriptionHealth(DTO):
     status: Literal['active','missing','unreachable']
     checked_at: datetime
     reason_code: str | None = None
+    bot_scope: str = ''
+    secret_verified: bool = False
+    @property
+    def healthy(self): return self.status=='active'
 class AuditEvent(DTO):
     event_id: UUID
     kind: str
@@ -1208,6 +1239,7 @@ class StagingManifestRef(DTO):
 class RenderJobContext(DTO):
     manifest: DocumentManifest
     payload: RenderPayload
+    template_registry: TemplateRegistry | None = None
 
 class MaterialDeliveryContext(DTO):
     permit: MaterialPermit
@@ -1330,6 +1362,19 @@ class DemoRelease(DTO):
     templates: TemplateRegistry
     demo_profiles: tuple[DemoProfile,...] = ()
 
+class ReleasePackage(DTO):
+    kind: Literal['CategoryProfile','CatalogPack','RoutePack','SourcesRegistry','TemplateRegistry','DemoCasePack']
+    ref: VersionRef
+    content: CategoryProfile | CatalogPack | RoutePack | SourcesRegistry | TemplateRegistry | DemoCasePack
+    @model_validator(mode='after')
+    def package_matches(self):
+        expected={'CategoryProfile':CategoryProfile,'CatalogPack':CatalogPack,'RoutePack':RoutePack,'SourcesRegistry':SourcesRegistry,'TemplateRegistry':TemplateRegistry,'DemoCasePack':DemoCasePack}[self.kind]
+        if not isinstance(self.content,expected): raise ValueError('package kind mismatch')
+        item=self.content
+        item_id=next(getattr(item,key) for key in ('profile_id','catalog_id','route_id','registry_id','pack_id') if hasattr(item,key))
+        if self.ref!=VersionRef(id=item_id,version=item.version): raise ValueError('package ref mismatch')
+        return self
+
 class ReleaseRecord(DTO):
     ref: VersionRef
     manifest: ReleasePackManifest
@@ -1338,6 +1383,7 @@ class ReleaseRecord(DTO):
     package_data_kinds: tuple[str,...] = ()
     assets_verified: bool = False
     content_hash: str
+    packages: tuple[ReleasePackage,...] = ()
 
 class ReleaseLifecycle(DTO):
     ref: VersionRef
@@ -1362,3 +1408,126 @@ class StepDecision(DTO):
     step: Literal['start','input','comparison','selection','branch','route','review','preparing','materials']
     required_fields: tuple[str,...] = ()
     available_actions: tuple[str,...] = ()
+
+
+class RetentionPolicy(DTO):
+    case_days: int = Field(default=90,gt=0)
+    artifact_days: int = Field(default=7,gt=0)
+    inbox_hours: int = Field(default=24,gt=0)
+    dedupe_days: int = Field(default=30,gt=0)
+    backup_days: int = Field(default=7,gt=0)
+    worker_heartbeat_seconds: int = Field(default=60,gt=0)
+    orphan_grace_seconds: int = Field(default=300,gt=0)
+    batch_size: int = Field(default=100,gt=0,le=1000)
+
+class WorkerHeartbeat(DTO):
+    worker_id: str
+    bot_scope: str
+    release_commit: str
+    heartbeat_at: datetime
+    capacity: Mapping[str,int] = Field(default_factory=dict)
+
+class DeletionJournalEntry(DTO):
+    case_id: UUID
+    owner_id: UUID
+    deletion_epoch: int = Field(ge=1)
+    deleted_at: datetime
+    bot_scope: str = ''
+
+class MaintenanceTargets(DTO):
+    artifacts: tuple[ArtifactRecord,...] = ()
+    cleanup: tuple[CaseCleanupRecord,...] = ()
+    protected_claims: tuple[ClaimedJob,...] = ()
+    active_blob_refs: tuple[str,...] = ()
+
+class BackupPolicy(DTO):
+    retention_days: int = Field(default=7,gt=0)
+    max_database_bytes: int = Field(default=268435456,gt=0)
+    max_archive_bytes: int = Field(default=536870912,gt=0)
+    max_blob_bytes: int = Field(default=10485760,gt=0)
+    max_blobs: int = Field(default=10000,gt=0)
+    maintenance: bool = False
+    offline: bool = False
+    restore_target_schema: str | None = Field(default=None,pattern=r'^[a-z][a-z0-9_]{0,62}$')
+
+class VerifiedDeletionJournal(DTO):
+    entries: tuple[DeletionJournalEntry,...] = ()
+    complete_through: datetime
+    verified_at: datetime
+    source_id: str
+    checksum: str
+    @model_validator(mode='after')
+    def cutoff(self):
+        if self.complete_through>self.verified_at: raise ValueError('journal cutoff after verification')
+        if any(entry.deleted_at>self.complete_through for entry in self.entries): raise ValueError('entry after complete cutoff')
+        return self
+
+class DatabaseBackupSnapshot(DTO):
+    dsn: str = Field(repr=False)
+    snapshot_id: str
+    schema_name: str
+    artifacts: tuple[ArtifactRecord,...] = ()
+
+
+def runtime_dependency_refs(record:ReleaseRecord)->tuple[VersionRef,...]:
+    """All versioned runtime dependencies; synthetic test inputs are not approvals."""
+    refs=[record.ref]
+    refs.extend(entry.ref for entry in record.manifest.files if entry.kind not in {'DemoCasePack','GoldenCasePack'})
+    for package in record.packages:
+        if package.kind=='DemoCasePack': continue
+        refs.append(package.ref)
+        if package.kind=='CatalogPack':
+            refs.extend(VersionRef(id=str(offer.snapshot_id),version=package.content.version) for offer in package.content.offers)
+        elif package.kind=='SourcesRegistry':
+            refs.extend(VersionRef(id=source.source_id,version=package.content.version) for source in package.content.sources)
+        elif package.kind=='TemplateRegistry':
+            refs.extend(template.ref for template in package.content.templates)
+    return tuple(sorted(set(refs),key=lambda ref:(ref.id,ref.version)))
+
+
+def _runtime_subjects(record):
+    subjects=[(record.manifest.data_kind,record.manifest.review)]
+    if record.packages:
+        for package in record.packages:
+            if package.kind=='DemoCasePack': continue
+            content=package.content
+            subjects.append((content.data_kind,content.review))
+            if package.kind=='CatalogPack': subjects.extend((offer.data_kind,offer.review) for offer in content.offers)
+            elif package.kind=='SourcesRegistry': subjects.extend((source.data_kind,source.review) for source in content.sources)
+    else:
+        if not record.package_reviews or len(record.package_reviews)!=len(record.package_data_kinds):
+            return ()
+        subjects.extend(zip(record.package_data_kinds,record.package_reviews))
+    return tuple(subjects)
+
+
+def check_release_policy(record:ReleaseRecord,mode,now,*,allow_synthetic_draft=False)->Result[bool]:
+    """Synthetic draft permission never extends to an unreviewed public snapshot."""
+    if mode not in {'demo','pilot'}: return Result.failure('VALIDATION_ERROR')
+    subjects=_runtime_subjects(record)
+    if not record.assets_verified or not subjects: return Result.failure('DATA_NOT_READY')
+    for kind,review in subjects:
+        if kind=='synthetic':
+            if mode!='demo' or not allow_synthetic_draft or review.status!='draft': return Result.failure('DATA_NOT_READY')
+        elif kind=='public_snapshot':
+            if review.status!='reviewed' or not review.reviewer_id or review.reviewed_at is None or review.review_due_at is None or now<review.reviewed_at:
+                return Result.failure('DATA_NOT_READY')
+            if now>=review.review_due_at: return Result.failure('DATA_EXPIRED')
+        else: return Result.failure('DATA_NOT_READY')
+    return Result.success(True)
+
+
+def ensure_active_release_ready(record:ReleaseRecord,lifecycles:tuple[ReleaseLifecycle,...],mode,now,
+                                *,allow_synthetic_draft=False)->Result[bool]:
+    states={state.ref:state for state in lifecycles}
+    for ref in runtime_dependency_refs(record):
+        state=states.get(ref)
+        if state is None: return Result.failure('DATA_NOT_READY')
+        if state.revoked: return Result.failure('DATA_REVOKED')
+        if state.review_due_at is not None and now>=state.review_due_at: return Result.failure('DATA_EXPIRED')
+    return check_release_policy(record,mode,now,allow_synthetic_draft=allow_synthetic_draft)
+
+# Render DTOs precede registry definitions; resolve their typed optional payloads
+# explicitly so legacy requests and spawn-process deserialization both work.
+RenderRequest.model_rebuild()
+RenderJobContext.model_rebuild()

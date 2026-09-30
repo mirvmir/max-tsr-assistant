@@ -42,7 +42,7 @@
             "description": "Invalid readiness credential"
           },
           "503": {
-            "description": "Not ready"
+            "description": "Readiness credential not configured, or DB/worker/release/secrets/subscription/restore gate unavailable. Authenticated degraded response: {\"status\":\"degraded\"}."
           }
         },
         "security": [

@@ -1,0 +1,56 @@
+{
+  "source_id": "public-med-base400",
+  "url": "https://medicamarket.ru/product/kreslo_kolyaska_dlya_invalidov_ortonica_base_400_do_130kg",
+  "observed_at": "2026-09-30T00:50:51.872514Z",
+  "retrieval": "Direct HTTPS GET; HTTP200; factual extraction only, not full licensed page archive",
+  "html_sha256": "ec5e2ea525b6662bbd839388c9633649e2b62d986ea5dabda5d74bca7a1a1b17",
+  "review": {
+    "status": "reviewed",
+    "reviewer_id": "codex-root-public-fact-audit",
+    "reviewed_at": "2026-09-30T01:10:11.200322Z",
+    "review_due_at": "2026-10-07T01:10:11.200322Z"
+  },
+  "locators": {
+    "selected_offer": "JSON-LD Product.sku plus visible Код товара/H1/Характеристики",
+    "price": "Selected item-price record and visible price; cross-checked against SEO and JSON-LD",
+    "availability": "Selected offer CAN_BUY/MAX_QUANTITY or JSON-LD/visible stock labels"
+  },
+  "selected_offer": {
+    "sku": "00-00048697",
+    "name": "Кресло-коляска инвалидная ORTONICA Base 400  складная, до 130кг",
+    "seat_width_cm": "40,5",
+    "max_user_mass_kg": "130",
+    "wheel_type_from_table": "пневмо",
+    "frame_type": "складная",
+    "visible_price_rub": 23628,
+    "structured_price_rub": 23628,
+    "seo_title_price_is_from": true,
+    "structured_availability": "PreOrder",
+    "visible_unavailable": false,
+    "configuration_conflict": false
+  },
+  "normalization": {
+    "seat_width_mm": "405",
+    "conversion": "decimal cm × 10 = mm, no rounding",
+    "max_user_mass_kg": "130"
+  },
+  "unknowns": {
+    "delivery": "No offer-and-region-specific final delivery charge verified",
+    "certificate_acceptance": "Product-page certificate button/service label observed; checkout eligibility for exact SKU/order not verified",
+    "fund_contract": "No offer-specific fund contract evidence found"
+  },
+  "uncertainties": [
+    "Опубликованная цена «от» сохранена как нижняя граница, не точная стоимость выбранной комплектации.",
+    "Общее JSON-LD shippingRate=0 не считается доказанной бесплатной доставкой выбранного заказа/региона."
+  ],
+  "independent_verification": {
+    "audit_file": "docs/data/factual-audit.json",
+    "audit_locator": "/3",
+    "audit_sha256": "5c7de56399aa2a36501690bca8910715c7797e88e43075a90fed4d971f1d261e",
+    "all_checks_passed": true,
+    "verified_at": "2026-09-30T01:10:07.472549+00:00",
+    "response_date": "Wed, 30 Sep 2026 01:10:06 GMT",
+    "verified_body_sha256": "25a66833631fb25f17d49c61e3acd7bd99c9eeee0bbf630e1b3c85c5cede50f2",
+    "review_scope": "Published selected-SKU technical facts only; no medical, legal, delivery/order acceptance approval"
+  }
+}

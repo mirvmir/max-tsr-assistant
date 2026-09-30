@@ -6,7 +6,7 @@ from uuid import uuid4
 from functools import wraps
 from tsr.contracts import *
 from tsr.domain.cases import initialize_input, create_case, propose_value, confirm_value, select_snapshot, choose_branch, authorize_owned
-from tsr.domain.matching import compare_offer
+from tsr.domain.matching import compare_offer, rank_comparisons
 from tsr.domain.pricing import quote_purchase
 from tsr.domain.routes import build_route_context, evaluate_route
 from tsr.domain.conversation import (
@@ -101,34 +101,27 @@ class Application:
             keys += ["region_code", "route_answers.applicant_status_declared", "document_fields.applicant_name", "document_fields.address"]
         return next((key for key in keys if not self._answered(revision,key)), None)
 
-    def _latest_question(self, uow, case):
-        outboxes = uow.outbox.list_by_case(case.case_id)
-        for record in reversed(sorted(outboxes,key=lambda item:item.intent.created_at)):
-            view = record.payload
-            if not isinstance(view,ViewModel) or view.dialog_revision != case.dialog_revision:
-                continue
-            for spec in view.actions:
-                handles = uow.handles.list_by_case(case.case_id)
-                handle = next((h for h in handles if h.handle==spec.action_handle),None)
-                if handle and handle.action.command_type=="propose_field" and not handle.action.action_key.startswith("edit_field_"):
-                    return handle.action.typed_payload.field_key
-            if view.kind == "candidate":
-                candidates = uow.candidates.list_by_case(case.case_id)
-                candidate = next((c for c in reversed(sorted(candidates,key=lambda c:c.created_at)) if c.dialog_revision==case.dialog_revision),None)
-                if candidate:
-                    return candidate.field_key
+    def _latest_question(self, uow, case, now):
+        record=uow.outbox.latest_question(case.owner_id,case.case_id,case.dialog_revision)
+        if record is None:
+            return None
+        view=record.payload
+        for spec in view.actions:
+            handle=uow.handles.find(case.owner_id,case.case_id,spec.action_handle)
+            if handle and handle.action.command_type=="propose_field" and not handle.action.action_key.startswith("edit_field_"):
+                return handle.action.typed_payload.field_key
+        if view.kind=="candidate":
+            candidate=uow.candidates.latest_for_guard(case.owner_id,guard_for(case),now,dialog_revision=case.dialog_revision)
+            if candidate:
+                return candidate.field_key
         return None
 
     def _save_case(self,uow,new_case,old_case):
         return uow.cases.save_if_revision(new_case,guard_for(old_case))
 
     def _invalidate(self,uow,case,now):
-        for bundle in uow.bundles.list_by_case(case.case_id):
-            if bundle.status not in ("deleted","expired"):
-                uow.bundles.save(bundle.model_copy(update={"status":"historical"}))
-        for record in uow.work.list_by_case(case.case_id):
-            if record.work.case_revision is not None and record.work.case_revision != case.case_revision and record.status in ("queued","retry_wait","running"):
-                uow.work.save(record.model_copy(update={"status":"cancelled"}))
+        uow.bundles.mark_historical(case.case_id,case.owner_id)
+        uow.work.cancel_old_for_case(case.case_id,case.owner_id,case.case_revision)
 
     def _bind_view(self,uow,ctx,view_draft,now):
         expires = now+timedelta(seconds=self.settings.handle_ttl_seconds)
@@ -149,8 +142,10 @@ class Application:
             opaque=self._id().hex
             if intent.action_key=="confirm_delete":
                 intent=intent.model_copy(update={"typed_payload":DeleteCasePayload(confirmation_handle=opaque)})
+            intent_guard=intent.required_guard
+            target_case=uow.cases.get(intent_guard.case_id) if intent_guard and intent_guard!=view_draft.case_guard else None
             handle = HandleRecord(handle_id=self._id(),handle=opaque,owner_id=ctx.owner_id,
-                                  case_guard=view_draft.case_guard,dialog_revision=view_draft.dialog_revision,
+                                  case_guard=intent_guard,dialog_revision=target_case.dialog_revision if target_case else view_draft.dialog_revision,
                                   action=intent,expires_at=expires)
             uow.handles.insert(handle)
             handles.append(handle)
@@ -177,14 +172,17 @@ class Application:
         return Result.success(CommandResult(case=case,view=view,created_bundle_id=bundle_id,delivery_state="queued"))
 
     def _materials_view(self,uow,case,now,page=0):
-        artifacts=uow.artifacts.list_by_case(case.case_id)
+        total=uow.artifacts.count_live_by_case(case.case_id)
+        if page>=max(1,(total+7)//8):
+            raise ValueError("material page unavailable")
+        artifacts=uow.artifacts.page_live_by_case(case.case_id,8,page*8)
         historical=[]
         for artifact in artifacts:
             manifest=uow.manifests.get(artifact.manifest_id)
             if manifest and not self._freshness(manifest.content,now,uow).ok:
                 historical.append(artifact.artifact_id)
-        view=materials_view(case,uow.bundles.list_by_case(case.case_id),artifacts,now,tuple(historical),page)
-        unknown=[o for o in uow.outbox.list_by_case(case.case_id) if o.status=="delivery_unknown" and o.intent.kind in ("view","material")]
+        view=materials_view(case,uow.bundles.latest_by_case(case.case_id,3),artifacts,now,tuple(historical),page,total)
+        unknown=uow.outbox.latest_unknown_by_case(case.case_id,3)
         if unknown:
             from tsr.domain.conversation import section
             warning=section("Доставку некоторых сообщений или файлов не удалось подтвердить. Они могли уже прийти. Повтор выполняется только по вашей явной кнопке и может создать дубликат.","status")
@@ -194,7 +192,16 @@ class Application:
         return view
 
     def _normal_view(self,uow,ctx,case,now):
+        if case.profile_ref!=self.release.profile.ref:
+            return Result.success(self._legacy_view(case))
         revision=uow.inputs.get(case.input_revision_id)
+        candidate=uow.candidates.latest_for_guard(ctx.owner_id,guard_for(case),now)
+        if candidate:
+            if candidate.dialog_revision!=case.dialog_revision:
+                candidate=candidate.model_copy(update={"candidate_id":self._id(),"dialog_revision":case.dialog_revision,"created_at":now,"value_hash":""})
+                candidate=candidate.model_copy(update={"value_hash":content_hash(candidate)})
+                uow.candidates.insert(candidate)
+            return Result.success(candidate_view(case,candidate,self._rule(candidate.field_key).label))
         key=self._next_field(case,revision)
         if case.step=="preparing":
             return Result.success(draft(case,"preparing","Готовим файлы. Готовым считается только полный комплект. Можно продолжить позже.",navigation(guard_for(case)),("synthetic_demo",)))
@@ -203,8 +210,7 @@ class Application:
         if key:
             return Result.success(input_view(case,self._rule(key)))
         if key is None and case.active_confirmation_id:
-            manifests=uow.manifests.list_by_case(case.case_id)
-            manifest=next((m for m in manifests if m.confirmation_id==case.active_confirmation_id),None)
+            manifest=uow.manifests.find_by_confirmation(case.active_confirmation_id,owner_id=case.owner_id,case_id=case.case_id)
             bundle=uow.bundles.find_by_manifest(manifest.manifest_id) if manifest else None
             if bundle and bundle.status=="ready":
                 return Result.success(self._materials_view(uow,case,now))
@@ -212,15 +218,106 @@ class Application:
                 return Result.success(draft(case,"preparing","Готовим подтверждённый комплект. Можно продолжить позже.",navigation(guard_for(case)),("synthetic_demo",)))
         if case.selected_snapshot_id is None:
             g=guard_for(case)
-            offers=tuple(o.snapshot_id for o in self.release.offers[:3])
-            a=action("compare","compare","compare_offers",CompareOffersPayload(snapshot_ids=offers),g)
-            return Result.success(draft(case,"comparison","Готовы сравнить до трёх точных комплектаций. Неизвестные характеристики останутся видны.",(a,)+navigation(g),("synthetic_demo",)))
+            compare=action("compare","compare","navigate",NavigatePayload(destination="resume",screen="catalog"),g)
+            return Result.success(draft(case,"comparison","Готовы сравнить точные комплектации. Каталог показан по три предложения на странице; неизвестные характеристики останутся видны.",(compare,)+navigation(g),("synthetic_demo",) if case.mode=="demo" else ()))
         if case.branch is None:
             return Result.success(branch_view(case))
         preview=self._prepare_preview(uow,ctx,guard_for(case),now)
         if not preview.ok:
             return preview
         return Result.success(preview_view(case,preview.value,self.release.profile))
+
+    def _start_view(self,text=None):
+        return start_view(self.release.profile.ref,text,any(o.data_kind=="public_snapshot" for o in self.release.offers),self.settings.mode)
+
+    def _legacy_view(self,case):
+        g=guard_for(case)
+        return draft(case,"help","Профиль этого кейса относится к прежней версии каталога. Ответы и история сохранены без изменения. Материалы доступны с предупреждением об исторических сведениях. Для актуального каталога начните новый кейс и выберите роль.",(
+            action("new_case","Новый кейс с актуальным каталогом","navigate",NavigatePayload(destination="new_case"),g),
+            action("materials","Мои материалы","navigate",NavigatePayload(destination="materials"),g),
+            action("cases","Мои кейсы","navigate",NavigatePayload(destination="cases",screen="cases"),g)))
+
+    def _cases_view(self,uow,ctx,page):
+        from tsr.domain.conversation import section
+        total=uow.cases.count_live_by_owner(ctx.owner_id)
+        count=max(1,(total+4)//5)
+        if page>=count:
+            return self._failure("VALIDATION_ERROR",ctx)
+        cases=uow.cases.page_live_by_owner(ctx.owner_id,5,page*5)
+        sections=[section(f"Мои кейсы · страница {page+1}/{count}. Всего: {total}")];actions=[]
+        for n,case in enumerate(cases,page*5+1):
+            label=f"Кейс {n} · {case.last_activity_at.strftime('%d.%m.%Y')} · "+("карточка покупки" if case.branch=="purchase" else "обращение" if case.branch=="support" else "сбор сведений")
+            sections.append(section(label))
+            actions.extend((action(f"case_resume_{case.case_id}",f"Открыть кейс {n}","navigate",NavigatePayload(destination="resume"),guard_for(case)),action(f"case_materials_{case.case_id}",f"Материалы кейса {n}","navigate",NavigatePayload(destination="materials"),guard_for(case))))
+        for target in (page-1,page+1):
+            if 0<=target<count:
+                actions.append(action(f"cases_page_{target}","Следующие кейсы" if target>page else "Предыдущие кейсы","navigate",NavigatePayload(destination="cases",screen="cases",page=target)))
+        actions.append(action("new_case","Новый кейс с актуальным каталогом","navigate",NavigatePayload(destination="new_case")))
+        return Result.success(ViewDraft(kind="help",title_key="cases.title",sections=tuple(sections),actions=tuple(actions)))
+
+    def _comparisons(self,uow,ctx,case,ids,now):
+        ready=self._release_ready(uow,case.mode,now)
+        if not ready.ok:return ready
+        revision=uow.inputs.get(case.input_revision_id);records=[]
+        existing=uow.comparisons.find_for_guard(ctx.owner_id,guard_for(case),revision.input_revision_id,ids)
+        for snapshot_id in ids:
+            cached=next((r for r in existing if r.case_guard==guard_for(case) and r.result.input_revision_id==revision.input_revision_id and r.result.snapshot_id==snapshot_id),None)
+            if cached:
+                records.append(cached);continue
+            offer=next((o for o in self.release.offers if o.snapshot_id==snapshot_id),None)
+            if offer is None:return self._failure("NOT_FOUND",ctx)
+            compared=compare_offer(self._id(),revision,offer,self.release.profile,self.matching_ref,now)
+            quoted=quote_purchase(revision,offer,self.pricing_ref)
+            if not compared.ok:return compared
+            if not quoted.ok:return quoted
+            record=ComparisonRecord(comparison_id=compared.value.comparison_id,owner_id=ctx.owner_id,case_id=case.case_id,case_guard=guard_for(case),result=compared.value,quote=quoted.value)
+            uow.comparisons.insert(record);records.append(record)
+        return Result.success(tuple(records))
+
+    def _catalog_view(self,uow,ctx,case,now,page):
+        count=max(1,(len(self.release.offers)+2)//3)
+        if page>=count or not self.release.offers:return self._failure("VALIDATION_ERROR",ctx)
+        ready=self._release_ready(uow,case.mode,now)
+        if not ready.ok:return ready
+        revision=uow.inputs.get(case.input_revision_id);results=[];quotes=[]
+        # Ranking is pure over immutable inputs. Only the visible three acquire
+        # persisted comparison IDs; snapshot IDs identify temporary rank entries.
+        for offer in self.release.offers:
+            compared=compare_offer(offer.snapshot_id,revision,offer,self.release.profile,self.matching_ref,now)
+            quoted=quote_purchase(revision,offer,self.pricing_ref)
+            if not compared.ok:return compared
+            if not quoted.ok:return quoted
+            results.append(compared.value);quotes.append(quoted.value)
+        ranked=rank_comparisons(results,quotes)
+        by_id={item.comparison_id:item for item in results}
+        shown=tuple(by_id[id_].snapshot_id for id_ in ranked.comparison_ids[page*3:(page+1)*3])
+        records=self._comparisons(uow,ctx,case,shown,now)
+        if not records.ok:return records
+        page_set=ComparisonSet(items=tuple(record.result for record in records.value),quotes=tuple(record.quote for record in records.value),case_guard=guard_for(case))
+        return Result.success(build_comparison_view(page_set,case,self.release.offers,self.release.catalog.suppliers,self.release.profile,self.release.sources.sources,page,count,self.release.catalog.version))
+
+    def _release_ready(self,uow,mode,now):
+        record=uow.releases.get(self.release.release_ref)
+        if record is None:
+            # Direct pure-demo fixtures have no imported lifecycle. This exemption
+            # never extends to a public snapshot or a pilot deployment.
+            subjects=(self.release.manifest,self.release.profile,self.release.catalog,self.release.route,self.release.sources,self.release.templates,*self.release.offers,*self.release.sources.sources)
+            if mode=="demo" and self.settings.allow_synthetic_draft and all(subject.data_kind=="synthetic" and subject.review.status=="draft" for subject in subjects):
+                return Result.success(True)
+            return self._failure("DATA_NOT_READY")
+        if not record.packages:
+            packages=tuple(ReleasePackage(kind=kind,ref=subject.ref,content=subject) for kind,subject in (
+                ("CategoryProfile",self.release.profile),("CatalogPack",self.release.catalog),("RoutePack",self.release.route),
+                ("SourcesRegistry",self.release.sources),("TemplateRegistry",self.release.templates)))
+            record=record.model_copy(update={"packages":packages})
+        lifecycles=tuple(state for ref in runtime_dependency_refs(record) if (state:=uow.releases.read_lifecycle(ref,lock=True)) is not None)
+        active=uow.releases.get_active(mode,lock=True,bot_scope=self.settings.bot_scope)
+        if active is None or active.ref!=self.release.release_ref:
+            return self._failure("DATA_NOT_READY")
+        return ensure_active_release_ready(record,lifecycles,mode,now,allow_synthetic_draft=self.settings.allow_synthetic_draft)
+
+    def _pilot_ready(self,uow,now):
+        return bool(getattr(self.settings,"reviewed_data_ready",False) and getattr(self.settings,"privacy_ready",False) and self._release_ready(uow,"pilot",now).ok)
 
     @correlated
     def execute_command(self,envelope):
@@ -232,31 +329,42 @@ class Application:
             return result
 
     def _execute(self,uow,envelope,now,historical_ack=False):
+        if not uow.restore_ready():
+            return self._failure("DATA_NOT_READY")
         ctx=envelope.actor
         p=envelope.payload
         if envelope.type=="start_case":
             exact=VersionRef(id=self.release.profile.profile_id,version=self.release.profile.version)
             if p.category_ref != exact:
                 return self._failure("INCOMPATIBLE_PROFILE",ctx)
-            if ctx.case_mode=="pilot":
+            if ctx.case_mode=="pilot" and not self._pilot_ready(uow,now):
                 return self._failure("DATA_NOT_READY",ctx)
             case_id=self._id()
             revision=initialize_input(self._id(),ctx,case_id,self.release.profile,p.requested_role,now)
             case=create_case(ctx,case_id,exact,revision,now)
             uow.inputs.insert(revision)
             uow.cases.insert(case)
-            for handle in uow.handles.list_by_owner(ctx.owner_id):
-                if handle.case_guard is None and handle.action.command_type=="start_case":
-                    uow.handles.resolve(ctx,handle.handle,now,consume=True)
+            uow.handles.invalidate_owner(ctx.owner_id)
             view=self._normal_view(uow,ctx,case,now)
             return self._result(uow,ctx,case,view.value,now,envelope.command_id)
+        if envelope.type=="navigate" and p.destination in ("new_case","cases"):
+            if envelope.case_guard:
+                checked=self._owned_case(uow,ctx,envelope.case_guard,envelope.dialog_guard)
+                if not checked.ok:return checked
+            if p.destination=="new_case":
+                return self._result(uow,ctx,None,self._start_view(),now,envelope.command_id)
+            listing=self._cases_view(uow,ctx,p.page)
+            if not listing.ok:return listing
+            return self._result(uow,ctx,None,listing.value,now,envelope.command_id)
         if envelope.type=="navigate" and envelope.case_guard is None and p.destination=="help":
-            return self._result(uow,ctx,None,start_view(self.release.profile.ref,"Каждый значимый ответ сохраняется после подтверждения. Неизвестное можно указать явно; «Назад» позволяет исправить ответ. Демонстрация использует только синтетические сведения. Выберите, кто обращается."),now,envelope.command_id)
+            return self._result(uow,ctx,None,self._start_view(),now,envelope.command_id)
         owned=self._owned_case(uow,ctx,envelope.case_guard,envelope.dialog_guard)
         if not owned.ok:
             return owned
         case=owned.value
         revision=uow.inputs.get(case.input_revision_id)
+        if case.profile_ref!=self.release.profile.ref and not (envelope.type=="navigate" and p.destination in ("materials","resume","help")) and envelope.type not in ("request_material","delete_case"):
+            return self._failure("INCOMPATIBLE_PROFILE",ctx)
         if envelope.type in ("propose_field","answer_route"):
             field_key=p.field_key
             if envelope.type=="answer_route" and not field_key.startswith("route_answers."):
@@ -306,28 +414,16 @@ class Application:
             ids=p.snapshot_ids
             if not 1<=len(ids)<=3 or len(set(ids))!=len(ids):
                 return self._failure("VALIDATION_ERROR",ctx)
-            comparisons=[]; quotes=[]
-            for snapshot_id in ids:
-                offer=next((o for o in self.release.offers if o.snapshot_id==snapshot_id),None)
-                if offer is None:
-                    return self._failure("NOT_FOUND",ctx)
-                comparison=compare_offer(self._id(),revision,offer,self.release.profile,self.matching_ref,now)
-                quote=quote_purchase(revision,offer,self.pricing_ref)
-                if not comparison.ok:
-                    return comparison
-                if not quote.ok:
-                    return quote
-                comparisons.append(comparison.value); quotes.append(quote.value)
-                record=ComparisonRecord(comparison_id=comparison.value.comparison_id,owner_id=ctx.owner_id,case_id=case.case_id,
-                                        case_guard=guard_for(case),result=comparison.value,quote=quote.value)
-                uow.comparisons.insert(record)
+            compared=self._comparisons(uow,ctx,case,ids,now)
+            if not compared.ok:return compared
             updated=case.model_copy(update={"step":"comparison","dialog_revision":case.dialog_revision+1,"last_activity_at":now})
             saved=self._save_case(uow,updated,case)
-            if not saved.ok:
-                return saved
-            set_=ComparisonSet(items=tuple(comparisons),quotes=tuple(quotes),case_guard=guard_for(updated))
+            if not saved.ok:return saved
+            set_=ComparisonSet(items=tuple(record.result for record in compared.value),quotes=tuple(record.quote for record in compared.value),case_guard=guard_for(updated))
             return self._result(uow,ctx,updated,build_comparison_view(set_,updated,self.release.offers,self.release.catalog.suppliers,self.release.profile,self.release.sources.sources),now,envelope.command_id)
         if envelope.type=="select_offer":
+            ready=self._release_ready(uow,case.mode,now)
+            if not ready.ok:return ready
             record=uow.comparisons.get(p.comparison_id)
             if record is None or record.owner_id!=ctx.owner_id or record.case_id!=case.case_id:
                 return self._failure("ACCESS_DENIED",ctx)
@@ -400,6 +496,13 @@ class Application:
                 view=normal.value
             return self._result(uow,ctx,case,view,now,envelope.command_id)
         if envelope.type=="navigate":
+            if p.screen=="catalog":
+                updated=case.model_copy(update={"dialog_revision":case.dialog_revision+1,"last_activity_at":now,"step":"comparison"})
+                view=self._catalog_view(uow,ctx,updated,now,p.page)
+                if not view.ok:return view
+                saved=self._save_case(uow,updated,case)
+                if not saved.ok:return saved
+                return self._result(uow,ctx,updated,view.value,now,envelope.command_id)
             if p.screen in ("candidate","review"):
                 if p.resource_id is None:
                     return self._failure("VALIDATION_ERROR",ctx)
@@ -438,7 +541,7 @@ class Application:
                 return self._result(uow,ctx,updated,view,now,envelope.command_id)
             updated=case.model_copy(update={"dialog_revision":case.dialog_revision+1,"last_activity_at":now})
             if p.destination=="help":
-                view=draft(updated,"help","Каждый значимый ответ сохраняется после подтверждения. «Назад» позволяет исправить ответ, «Продолжить» восстанавливает шаг. Неизвестное не считается нулём или согласием. Материалы синтетические; подбор не заменяет назначения и не обещает решения фонда.",navigation(guard_for(updated)))
+                view=draft(updated,"help","Каждый значимый ответ сохраняется после подтверждения. «Назад» позволяет исправить ответ, «Продолжить» восстанавливает шаг. Неизвестное не считается нулём или согласием. Данные пользователя в демонстрации вымышленные; происхождение каталога показано отдельно. Техническое сравнение не заменяет назначения и не обещает решения фонда.",navigation(guard_for(updated)))
             elif p.destination=="materials":
                 updated=updated.model_copy(update={"step":"materials"})
                 try:
@@ -446,7 +549,7 @@ class Application:
                 except ValueError:
                     return self._failure("VALIDATION_ERROR",ctx)
             elif p.destination=="back":
-                key=self._latest_question(uow,case)
+                key=self._latest_question(uow,case,now)
                 updated=updated.model_copy(update={"step":"input"})
                 view=input_view(updated,self._rule(key)) if key else edit_view(updated,revision,self.release.profile,self.release.offers)
             else:
@@ -472,30 +575,34 @@ class Application:
             deleted=uow.cases.mark_deleted(ctx,guard_for(case),now)
             if not deleted.ok:
                 return deleted
-            view=draft(None,"deleted","Кейс удалён. Доступ к материалам закрыт. Ранее начатая внешняя отправка могла завершиться.")
+            view=draft(None,"deleted","Кейс удалён. Доступ к материалам закрыт. Ранее начатая внешняя отправка могла завершиться.",(
+                action("new_case","Новый кейс с актуальным каталогом","navigate",NavigatePayload(destination="new_case")),
+                action("cases","Мои кейсы","navigate",NavigatePayload(destination="cases",screen="cases"))))
             return self._result(uow,ctx,None,view,now,envelope.command_id)
         return self._failure("INVALID_TRANSITION",ctx)
 
     def _freshness(self,content,now,uow=None):
         refs=(content.category_profile_ref,content.matching_algorithm_ref,content.pricing_algorithm_ref,content.generator_ref)+tuple(content.template_refs)
-        if content.case_mode!="demo" or "synthetic_demo" not in content.flags or not self.settings.allow_synthetic_draft:
+        if content.case_mode=="demo" and "synthetic_demo" not in content.flags:
+            return self._failure("DATA_NOT_READY")
+        if content.case_mode=="pilot" and not (getattr(self.settings,"reviewed_data_ready",False) and getattr(self.settings,"privacy_ready",False)):
             return self._failure("DATA_NOT_READY")
         if content.generator_ref!=self.generator_ref:
             return self._failure("DATA_NOT_READY")
+        if content.matching_algorithm_ref!=self.matching_ref or content.pricing_algorithm_ref!=self.pricing_ref:
+            return self._failure("DATA_NOT_READY")
         if content.category_profile_ref!=VersionRef(id=self.release.profile.profile_id,version=self.release.profile.version):
+            return self._failure("DATA_NOT_READY")
+        if content.catalog_ref is not None and content.catalog_ref!=self.release.catalog.ref:
+            return self._failure("DATA_NOT_READY")
+        if content.data_release_ref is not None and content.data_release_ref!=self.release.release_ref:
             return self._failure("DATA_NOT_READY")
         offer=next((o for o in self.release.offers if o.snapshot_id==content.offer_snapshot.snapshot_id),None)
         if offer is None or content_hash(offer)!=content_hash(content.offer_snapshot):
             return self._failure("DATA_NOT_READY")
         if uow is not None:
-            release_lifecycle=uow.releases.read_lifecycle(self.release.release_ref,lock=True)
-            active=uow.releases.get_active(content.case_mode,lock=True)
-            if active and active.ref!=self.release.release_ref:
-                return self._failure("DATA_NOT_READY")
-            if release_lifecycle and release_lifecycle.revoked:
-                return self._failure("DATA_REVOKED")
-            if release_lifecycle and release_lifecycle.review_due_at is not None and release_lifecycle.review_due_at<=now:
-                return self._failure("DATA_EXPIRED")
+            ready=self._release_ready(uow,content.case_mode,now)
+            if not ready.ok:return ready
         if content.route_ref and content.route_ref!=self.release.route.ref:
             return self._failure("DATA_NOT_READY")
         lifecycle=getattr(self.release,"route_lifecycle",None)
@@ -512,13 +619,15 @@ class Application:
         required=(("purchase_card","pdf"),) if branch=="purchase" else (("application","docx"),("application","pdf"),("product_card","pdf"),("checklist","pdf"))
         specs=[]
         for kind,fmt in required:
-            ref=next((ref for ref in self.release.template_refs if kind.replace("_","-") in ref.id.replace("_","-")),None)
-            if ref is None:
-                raise ValueError("required demo template unavailable")
-            specs.append(ArtifactSpec(document_kind=kind,format=fmt,template_ref=ref))
+            entries=tuple(entry for entry in self.release.templates.templates if entry.document_kind==kind and any(asset.format==fmt for asset in entry.assets))
+            if len(entries)!=1:
+                raise ValueError("required template mapping unavailable or ambiguous")
+            specs.append(ArtifactSpec(document_kind=kind,format=fmt,template_ref=entries[0].ref))
         return tuple(specs)
 
     def _prepare_preview(self,uow,ctx,guard,now):
+        if not uow.restore_ready():
+            return self._failure("DATA_NOT_READY")
         found=self._owned_case(uow,ctx,guard)
         if not found.ok:
             return found
@@ -552,16 +661,21 @@ class Application:
             missing.extend(route.missing_fields)
             if route.addressee.status!="known":
                 missing.append("addressee")
-        refs=tuple(dict.fromkeys(spec.template_ref for spec in self._artifact_specs(case.branch)))
+        try:
+            refs=tuple(dict.fromkeys(spec.template_ref for spec in self._artifact_specs(case.branch)))
+        except ValueError:
+            return self._failure("DATA_NOT_READY",ctx)
         content=ManifestContent(owner_id=ctx.owner_id,case_id=case.case_id,case_revision=case.case_revision,
                                 deletion_epoch=case.deletion_epoch,case_mode=case.mode,input_revision=revision,
                                 offer_snapshot=snapshot,sources=self.release.sources.sources,comparison=comparison.value,
                                 pricing=pricing.value,route=route,branch=case.branch,
                                 category_profile_ref=case.profile_ref,matching_algorithm_ref=self.matching_ref,
+                                catalog_ref=self.release.catalog.ref,data_release_ref=self.release.release_ref,
+                                supplier=next((s for s in self.release.catalog.suppliers if s.supplier_id==snapshot.supplier_id),None),
                                 pricing_algorithm_ref=self.pricing_ref,route_ref=route.route_ref if route else None,
                                 template_refs=refs,generator_ref=self.generator_ref,
                                 release_commit=getattr(self.settings,"release_commit","demo-local"),missing_fields=tuple(sorted(set(missing))),
-                                flags=("synthetic_demo",)+( ("synthetic_route_model",) if route else ()))
+                                flags=(("synthetic_demo","synthetic_user","public_catalog") if snapshot.data_kind=="public_snapshot" and case.mode=="demo" else ("synthetic_demo",) if case.mode=="demo" else ())+( ("synthetic_route_model",) if route and self.release.route.data_kind=="synthetic" else ()))
         freshness=self._freshness(content,now,uow)
         if not freshness.ok:
             return freshness
@@ -590,8 +704,9 @@ class Application:
         # A duplicate confirmation uses the exact existing bundle. No recalculation.
         existing=uow.confirmations.find_by_preview(preview.preview_id)
         if existing:
-            manifests=uow.manifests.list_by_case(case.case_id)
-            manifest=next((m for m in manifests if m.confirmation_id==existing.confirmation_id),None)
+            manifest=uow.manifests.find_by_confirmation(existing.confirmation_id,owner_id=ctx.owner_id,case_id=case.case_id)
+            if manifest is None:
+                return self._failure("DATA_NOT_READY",ctx)
             bundle=uow.bundles.find_by_manifest(manifest.manifest_id)
             return Result.success((case,bundle))
         if preview.expires_at<=now or preview.dialog_revision!=case.dialog_revision:
@@ -623,14 +738,19 @@ class Application:
     def _actor_for(self,owner_id,case,trace_id,delivery_target_id=None,uow=None):
         if uow is None:
             raise ValueError("semantic context requires the current transaction")
-        identities=uow.identities.list_by_owner(owner_id)
-        previous=uow.outbox.list_by_case(case.case_id) if case else ()
-        previous_target=max(previous,key=lambda record:record.intent.created_at).intent.delivery_target_id if previous else None
-        target=delivery_target_id or previous_target or (identities[0].delivery_target_id if identities else owner_id)
+        target=delivery_target_id
+        if target is None and case is not None:
+            previous=uow.outbox.latest_for_owner_case(owner_id,case.case_id)
+            target=previous.intent.delivery_target_id if previous else None
+        if target is None:
+            identities=uow.identities.for_owner(owner_id,limit=1)
+            target=identities[0].delivery_target_id if identities else owner_id
         return ActorContext(owner_id=owner_id,delivery_target_id=target,bot_scope=getattr(self.settings,"bot_scope","demo"),
                             case_mode=case.mode if case else "demo",correlation_id=trace_id)
 
     def _render_context(self,uow,claim,now):
+        if not uow.restore_ready():
+            return self._failure("DATA_NOT_READY")
         if claim.kind!="render_artifact" or not self._check_claim(uow,claim,now):
             return self._failure("LEASE_LOST")
         record=uow.work.get(claim.job_id)
@@ -661,7 +781,9 @@ class Application:
         fresh=self._freshness(manifest.content,now,uow)
         if not fresh.ok:
             return fresh
-        return Result.success(RenderJobContext(manifest=manifest,payload=payload))
+        if payload.artifact_spec not in bundle.required_artifacts or payload.artifact_spec.template_ref not in manifest.content.template_refs:
+            return self._failure("DATA_NOT_READY",ctx)
+        return Result.success(RenderJobContext(manifest=manifest,payload=payload,template_registry=self.release.templates))
 
     @correlated
     def get_render_context(self,claim,now=None):
@@ -689,7 +811,8 @@ class Application:
             uow.artifacts.insert(record)
             bundle=uow.bundles.get(payload.bundle_id)
             published=tuple(dict.fromkeys(bundle.published_artifact_ids+(record.artifact_id,)))
-            all_artifacts=uow.artifacts.list_by_case(claim.case_id)
+            all_artifacts=uow.artifacts.get_many(published,owner_id=claim.owner_id,case_id=claim.case_id)
+            all_artifacts=tuple(a for a in all_artifacts if a.manifest_id==manifest.manifest_id and a.case_revision==claim.case_revision and a.deletion_epoch==claim.deletion_epoch and a.publication_status=="published")
             complete=all(any(a.artifact_id in published and a.document_kind==required.document_kind and a.format==required.format
                              for a in all_artifacts) for required in bundle.required_artifacts)
             uow.bundles.save(bundle.model_copy(update={"published_artifact_ids":published,"status":"ready" if complete else "preparing"}))
@@ -706,6 +829,8 @@ class Application:
             return Result.success(record)
 
     def _request_material(self,uow,ctx,guard,artifact_id,disposition,now,warning_acknowledged=False):
+        if not uow.restore_ready():
+            return self._failure("DATA_NOT_READY")
         owned=self._owned_case(uow,ctx,guard)
         if not owned.ok:
             return owned
@@ -745,6 +870,8 @@ class Application:
             return result
 
     def _delivery_record(self,uow,claim,now):
+        if not uow.restore_ready():
+            return self._failure("DATA_NOT_READY")
         if claim.kind!="deliver_outbox" or not self._check_claim(uow,claim,now):
             return self._failure("LEASE_LOST")
         record=uow.outbox.get(claim.payload_ref)
@@ -845,6 +972,8 @@ class Application:
             return Result.success(record)
 
     def _handle_command(self,uow,ctx,opaque_handle,now,inbox_id=None):
+        if not uow.restore_ready():
+            return self._failure("DATA_NOT_READY")
         resolved=uow.handles.resolve(ctx,opaque_handle,now)
         if not resolved.ok:
             return resolved
@@ -903,10 +1032,19 @@ class Application:
             return result
 
     def _text_command(self,uow,ctx,text,now,case_id=None,inbox_id=None):
-        cases=[c for c in uow.cases.list_by_owner(ctx.owner_id) if c.status not in ("deleted","deleting") and (case_id is None or c.case_id==case_id)]
-        if not cases:
+        if not uow.restore_ready():
+            return self._failure("DATA_NOT_READY")
+        global_destination={"мои кейсы":"cases","новый кейс":"new_case"}.get(text.strip().lower())
+        if global_destination:
+            return self._execute(uow,CommandEnvelope(command_id=self._id(),inbox_id=inbox_id,actor=ctx,type="navigate",payload=NavigatePayload(destination=global_destination,screen="cases" if global_destination=="cases" else None)),now)
+        if case_id is None:
+            case=uow.cases.latest_live_by_owner(ctx.owner_id)
+        else:
+            owned=uow.cases.get_owned(ctx,case_id)
+            if not owned.ok:return owned
+            case=owned.value
+        if case is None:
             return self._failure("NOT_FOUND",ctx)
-        case=max(cases,key=lambda c:c.last_activity_at)
         lowered=text.strip().lower()
         destinations={"назад":"back","продолжить":"resume","помощь":"help","материалы":"materials","мои материалы":"materials","/help":"help"}
         if lowered in destinations:
@@ -914,7 +1052,7 @@ class Application:
                                      type="navigate",payload=NavigatePayload(destination=destinations[lowered]))
         else:
             revision=uow.inputs.get(case.input_revision_id)
-            field=self._latest_question(uow,case) or self._next_field(case,revision)
+            field=self._latest_question(uow,case,now) or self._next_field(case,revision)
             if field is None:
                 return self._failure("INVALID_TRANSITION",ctx)
             unknown=lowered in ("не знаю","не указано","unknown")
@@ -935,44 +1073,50 @@ class Application:
     def handle_inbox(self,claim):
         now=self.clock.now()
         with self.db.uow() as uow:
+            if not uow.restore_ready():
+                return self._failure("DATA_NOT_READY")
             if claim.kind!="process_inbox" or not self._check_claim(uow,claim,now):
                 return self._failure("LEASE_LOST")
             inbox=uow.inbox.get(claim.payload_ref)
             if inbox is None or inbox.owner_id!=claim.owner_id:
                 return self._failure("ACCESS_DENIED")
             event=inbox.event
+            if event.kind=="ignored" and event.payload.reason!="private_chat_required":
+                uow.inbox.mark_processed(inbox.inbox_id,"ignored")
+                if not uow.work.finish_if_claim(claim,now):
+                    return self._failure("LEASE_LOST")
+                uow.commit()
+                return Result.success(None)
             uow.savepoint("application_command")
             ctx=ActorContext(owner_id=event.owner_id,delivery_target_id=event.delivery_target_id,
                              bot_scope=event.bot_scope,case_mode=getattr(self.settings,"mode","demo"),correlation_id=claim.trace_id)
             if inbox.status in ("processed","ignored"):
                 return self._failure("INVALID_TRANSITION",ctx)
             if event.kind=="start":
-                live=[c for c in uow.cases.list_by_owner(ctx.owner_id) if c.status not in ("deleted","deleting")]
-                if live:
-                    case=max(live,key=lambda c:c.last_activity_at)
+                case=uow.cases.latest_live_by_owner(ctx.owner_id)
+                if case is not None:
                     envelope=CommandEnvelope(command_id=self._id(),inbox_id=inbox.inbox_id,actor=ctx,case_guard=guard_for(case),
                                              type="navigate",payload=NavigatePayload(destination="resume"))
                     result=self._execute(uow,envelope,now)
                 else:
-                    result=self._result(uow,ctx,None,start_view(self.release.profile.ref),now,inbox.inbox_id)
+                    result=self._result(uow,ctx,None,self._start_view(),now,inbox.inbox_id)
             elif event.kind=="callback":
                 result=self._handle_command(uow,ctx,event.payload.action_handle,now,inbox.inbox_id)
 
             elif event.kind=="text":
                 result=self._text_command(uow,ctx,event.payload.text,now,inbox_id=inbox.inbox_id)
             else:
-                result=self._result(uow,ctx,None,draft(None,"help","Начните личный диалог с помощником."),now,inbox.inbox_id)
+                result=self._result(uow,ctx,None,draft(None,"help","Работаю только в личном диалоге. Откройте личный чат с помощником, чтобы начать или продолжить кейс."),now,inbox.inbox_id)
             command_succeeded=result.ok
             if not result.ok:
                 error=result.error
                 uow.rollback_to_savepoint("application_command")
-                live=[c for c in uow.cases.list_by_owner(ctx.owner_id) if c.status not in ("deleted","deleting")]
-                if live:
-                    case=max(live,key=lambda c:c.last_activity_at)
+                case=uow.cases.latest_live_by_owner(ctx.owner_id)
+                if case is not None:
                     error_view=build_error_view(error).model_copy(update={"actions":navigation(guard_for(case)),"case_guard":guard_for(case),"dialog_revision":case.dialog_revision})
                 else:
                     case=None
-                    error_view=start_view(self.release.profile.ref,"Действие недоступно. Начните новый кейс; выберите, кто обращается.")
+                    error_view=self._start_view("Действие недоступно. Начните новый кейс; выберите, кто обращается.")
                 result=self._result(uow,ctx,case,error_view,now,inbox.inbox_id)
             uow.release_savepoint("application_command")
             if event.kind=="callback":

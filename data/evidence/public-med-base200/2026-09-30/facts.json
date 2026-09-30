@@ -1,0 +1,57 @@
+{
+  "source_id": "public-med-base200",
+  "url": "https://medicamarket.ru/product/kreslo_kolyaska_dlya_invalidov_ortonica_base_200_do_130kg_1",
+  "observed_at": "2026-09-30T00:50:50.995500Z",
+  "retrieval": "Direct HTTPS GET; HTTP200; factual extraction only, not full licensed page archive",
+  "html_sha256": "303649aca71b7712ac05782fca90e736a7a21295630e7a1b51d74ec94bff2319",
+  "review": {
+    "status": "reviewed",
+    "reviewer_id": "codex-root-public-fact-audit",
+    "reviewed_at": "2026-09-30T01:10:11.200322Z",
+    "review_due_at": "2026-10-07T01:10:11.200322Z"
+  },
+  "locators": {
+    "selected_offer": "JSON-LD Product.sku plus visible Код товара/H1/Характеристики",
+    "price": "Selected item-price record and visible price; cross-checked against SEO and JSON-LD",
+    "availability": "Selected offer CAN_BUY/MAX_QUANTITY or JSON-LD/visible stock labels"
+  },
+  "selected_offer": {
+    "sku": "00-00046407",
+    "name": "Кресло-коляска инвалидная ORTONICA Base 200 складная до 130кг",
+    "seat_width_cm": "50,5",
+    "max_user_mass_kg": "130",
+    "wheel_type_from_table": "пневмо",
+    "frame_type": "складная",
+    "visible_price_rub": 16724,
+    "structured_price_rub": 16724,
+    "seo_title_price_is_from": true,
+    "structured_availability": "InStock",
+    "visible_unavailable": false,
+    "configuration_conflict": true
+  },
+  "normalization": {
+    "seat_width_mm": "505",
+    "conversion": "decimal cm × 10 = mm, no rounding",
+    "max_user_mass_kg": "130"
+  },
+  "unknowns": {
+    "delivery": "No offer-and-region-specific final delivery charge verified",
+    "certificate_acceptance": "Product-page certificate button/service label observed; checkout eligibility for exact SKU/order not verified",
+    "fund_contract": "No offer-specific fund contract evidence found"
+  },
+  "uncertainties": [
+    "Опубликованная цена «от» сохранена как нижняя граница, не точная стоимость выбранной комплектации.",
+    "Общее JSON-LD shippingRate=0 не считается доказанной бесплатной доставкой выбранного заказа/региона.",
+    "Заголовок SKU00-00046407: литые шины, таблица:пневмо. Не создавались фиктивные две комплектации и не переносилась цена на другую SKU."
+  ],
+  "independent_verification": {
+    "audit_file": "docs/data/factual-audit.json",
+    "audit_locator": "/0",
+    "audit_sha256": "5c7de56399aa2a36501690bca8910715c7797e88e43075a90fed4d971f1d261e",
+    "all_checks_passed": true,
+    "verified_at": "2026-09-30T01:10:06.979391+00:00",
+    "response_date": "Wed, 30 Sep 2026 01:10:06 GMT",
+    "verified_body_sha256": "e261cdb8f9d63704832519dc0714d40eea118bf76a38b23c144c468ccf492cdb",
+    "review_scope": "Published selected-SKU technical facts only; no medical, legal, delivery/order acceptance approval"
+  }
+}
