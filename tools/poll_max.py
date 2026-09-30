@@ -1,7 +1,9 @@
 """Local MAX polling bridge; use the HTTPS webhook deployment for production.
 
 Responses are encrypted before forwarding to the ordinary authenticated HTTP
-inbox. A cursor advances only after every event has been durably accepted.
+inbox. A cursor advances only after every event has been durably accepted or
+explicitly rejected by the local input validator. Rejections retain only counts
+and fixed reasons, never message contents.
 Restarting replays any pending batch; the application's inbox deduplicates it.
 """
 from __future__ import annotations
@@ -17,6 +19,9 @@ from urllib.parse import urlsplit
 
 import httpx
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
+
+
+_PERMANENT_REJECTIONS = {400: 'invalid_update', 413: 'body_too_large'}
 
 
 class PollingError(Exception):
@@ -59,6 +64,9 @@ class State:
     def read(self):
         if not self.path.exists():
             return {'marker': None, 'pending': [], 'next_marker': None}
+        # A prior save may have replaced the file but failed its directory sync.
+        # Confirm that checkpoint before its cursor can acknowledge remote events.
+        self._sync_directory()
         try:
             content = self.path.read_bytes()
             result = json.loads(self.cipher.decrypt(content[:12], content[12:], self.identity))
@@ -67,6 +75,11 @@ class State:
             for key in ('marker', 'next_marker'):
                 if result.get(key) is not None and type(result[key]) is not int:
                     raise ValueError('invalid_marker')
+            counts = result.get('rejected_counts', {})
+            if not isinstance(counts, dict) or any(
+                    reason not in _PERMANENT_REJECTIONS.values() or type(count) is not int or count < 0
+                    for reason, count in counts.items()):
+                raise ValueError('invalid_rejected_counts')
             return result
         except Exception:
             raise PollingError('polling_state_invalid') from None
@@ -82,6 +95,16 @@ class State:
             stream.flush()
             os.fsync(stream.fileno())
         temporary.replace(self.path)
+        self._sync_directory()
+
+    def _sync_directory(self):
+        if os.name == 'posix':
+            # Persist the rename before a later request acknowledges the cursor.
+            directory = os.open(self.path.parent, os.O_RDONLY | os.O_DIRECTORY)
+            try:
+                os.fsync(directory)
+            finally:
+                os.close(directory)
 
 
 def poll_once(api, local, *, base, token, endpoint, secret, state, max_body_bytes=131072):
@@ -99,25 +122,51 @@ def poll_once(api, local, *, base, token, endpoint, secret, state, max_body_byte
             raise PollingError('max_missing_marker')
         # Keep the response across a local outage or restart, including the first
         # response where MAX was queried without a previous marker.
-        current = {'marker': current['marker'], 'pending': updates,
-                   'next_marker': marker if marker is not None else current['marker']}
+        current.update(pending=updates,
+                       next_marker=marker if marker is not None else current['marker'])
         state.save(current)
-    for update in current['pending']:
+    count, index = 0, 0
+    while index < len(current['pending']):
+        update = current['pending'][index]
         body = json.dumps(update, ensure_ascii=False).encode('utf-8')
+        rejection = None
         if len(body) > max_body_bytes:
-            raise PollingError('update_too_large')
-        response = local.post(endpoint, content=body, headers={
-            'X-Max-Bot-Api-Secret': secret, 'Content-Type': 'application/json'})
-        if response.status_code != 200:
-            raise PollingError(f'local_webhook_http_{response.status_code}')
-        try:
-            accepted = response.json() == {'status': 'accepted'}
-        except ValueError:
-            accepted = False
-        if not accepted:
-            raise PollingError('local_webhook_invalid_ack')
-    count = len(current['pending'])
-    state.save({'marker': current['next_marker'], 'pending': [], 'next_marker': None})
+            rejection = 'body_too_large'
+        else:
+            response = local.post(endpoint, content=body, headers={
+                'X-Max-Bot-Api-Secret': secret, 'Content-Type': 'application/json'})
+            if response.status_code != 200:
+                reason = _PERMANENT_REJECTIONS.get(response.status_code)
+                try:
+                    if reason and response.json() == {'detail': reason}:
+                        rejection = reason
+                except ValueError:
+                    pass
+                if rejection is None:
+                    raise PollingError(f'local_webhook_http_{response.status_code}')
+            else:
+                try:
+                    accepted = response.json() == {'status': 'accepted'}
+                except ValueError:
+                    accepted = False
+                if not accepted:
+                    raise PollingError('local_webhook_invalid_ack')
+        if rejection:
+            current['pending'].pop(index)
+            counts = current.setdefault('rejected_counts', {})
+            counts[rejection] = counts.get(rejection, 0) + 1
+            if not current['pending']:
+                # No empty pending batch with an uncommitted next cursor may
+                # survive a restart, especially the first request without one.
+                current.update(marker=current['next_marker'], next_marker=None)
+            state.save(current)
+            print('Polling rejected update: ' + rejection, flush=True)
+            if not current['pending']:
+                return count
+            continue
+        count += 1
+        index += 1
+    state.save(dict(current, marker=current['next_marker'], pending=[], next_marker=None))
     return count
 
 
