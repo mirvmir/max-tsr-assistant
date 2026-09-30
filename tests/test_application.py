@@ -136,10 +136,12 @@ def test_both_frozen_confirmed_flows_and_required_bundle_readiness(app,branch):
     historical=app.request_material(ctx,edited.guard,artifacts[0].artifact_id,"historical",datetime.now(timezone.utc),warning_acknowledged=True)
     assert historical.ok,historical.error
     materials=command(app,ctx,"navigate",NavigatePayload(destination="materials"),edited)
-    assert any("ИСТОРИЧЕСКИЙ" in section.parameters.get("text","") for section in materials.view.sections)
+    assert any("Прежние версии неактуальны" in section.parameters.get("text","")
+               and "вы подтверждаете" in section.parameters.get("text","") for section in materials.view.sections)
     delete_prompt=next(a for a in materials.view.actions if a.label_key=="delete")
     prompt=app.execute_action(ctx,delete_prompt.action_handle)
     assert prompt.ok,prompt.error
+    assert prompt.value.view.title_key=="delete_confirmation.title"
     deleted=app.execute_action(ctx,prompt.value.view.actions[0].action_handle)
     assert deleted.ok,deleted.error
     denied=app.request_material(ctx,materials.case.guard,artifacts[0].artifact_id,"historical",datetime.now(timezone.utc),True)
@@ -531,7 +533,7 @@ def test_owner_case_pages_legacy_inputs_and_explicit_new_case_role(app):
     assert listing.case is None and len(render_max_view(listing.view).buttons)<=30
     second=app.execute_action(ctx,next(a.action_handle for a in listing.view.actions if 'Следующие кейсы' in a.label_key))
     assert second.ok
-    target=next(a for a in second.value.view.actions if a.label_key.startswith('Открыть кейс'))
+    target=next(a for a in second.value.view.actions if a.label_key.startswith('Открыть подбор'))
     foreign=app.execute_action(actor(),target.action_handle)
     assert not foreign.ok and foreign.error.code==ErrorCode.ACCESS_DENIED
     opened=app.execute_action(ctx,target.action_handle)
@@ -557,7 +559,7 @@ def test_public_provenance_and_lower_bound_price_never_claim_exact_amount(app):
     with app.db.uow() as u:
         bound=app._bind_view(u,ctx,view,datetime.now(timezone.utc));u.commit()
     rendered=render_max_view(bound)
-    assert 'Наблюдаемая цена: от 120 000,00 ₽' in rendered.text
+    assert 'Наблюдаемая цена: от 120 000 ₽' in rendered.text
     assert 'нижняя граница' in rendered.text and 'Цена комплектации: Неизвестно' in rendered.text
     assert source.title in rendered.text and 'Дата публичного снимка' in rendered.text
     assert 'Дата синтетического снимка' not in rendered.text
@@ -624,7 +626,7 @@ def test_real_catalog_all_twelve_ranked_and_later_medica_selection_is_frozen(app
     for page in range(4):
         rendered=render_max_view(listing.view)
         assert len(rendered.text)<=4000 and len(rendered.buttons)<=30
-        assert 'Дата публичного снимка' in rendered.text and 'Версия каталога: 1.1.0' in rendered.text
+        assert 'Дата публичного снимка' in rendered.text and f'Страница {page+1}/4' in rendered.text
         assert 'демонстрационный продавец' not in rendered.text and 'Дата синтетического снимка' not in rendered.text
         with app.db.uow() as u:
             records=[]
@@ -642,8 +644,8 @@ def test_real_catalog_all_twelve_ranked_and_later_medica_selection_is_frozen(app
         if page==0:
             assert records[0].result.classification=='complete'
             assert records[0].quote.gap==Money(minor=450000) and records[0].quote.certificate_use=='conditional'
-            assert 'Условное покрытие сертификатом: 10 000,00 ₽' in rendered.text
-            assert 'Условная разница без доставки: 4 500,00 ₽' in rendered.text
+            assert 'Условное покрытие сертификатом: 10 000 ₽' in rendered.text
+            assert 'Условная разница без доставки: 4 500 ₽' in rendered.text
         if page<3:
             listing=app.execute_action(ctx,next(a.action_handle for a in listing.view.actions if a.label_key.startswith('Следующие предложения'))).value
     assert len(set(seen))==12 and target is not None

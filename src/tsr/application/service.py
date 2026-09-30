@@ -185,7 +185,7 @@ class Application:
         unknown=uow.outbox.latest_unknown_by_case(case.case_id,3)
         if unknown:
             from tsr.domain.conversation import section
-            warning=section("Доставку некоторых сообщений или файлов не удалось подтвердить. Они могли уже прийти. Повтор выполняется только по вашей явной кнопке и может создать дубликат.","status")
+            warning=section("Доставка не подтверждена: сообщение или файл могли уже прийти. При повторе возможен дубликат.","status")
             retries=tuple(action("retry_"+str(record.outbox_id),f"Повторить доставку {number} · возможен дубликат","retry_delivery",RetryDeliveryPayload(outbox_id=record.outbox_id,acknowledged_possible_duplicate=True),guard_for(case))
                           for number,record in enumerate(sorted(unknown,key=lambda o:o.intent.created_at,reverse=True)[:3],1))
             view=view.model_copy(update={"sections":view.sections+(warning,),"actions":retries+view.actions})
@@ -204,7 +204,7 @@ class Application:
             return Result.success(candidate_view(case,candidate,self._rule(candidate.field_key).label))
         key=self._next_field(case,revision)
         if case.step=="preparing":
-            return Result.success(draft(case,"preparing","Готовим файлы. Готовым считается только полный комплект. Можно продолжить позже.",navigation(guard_for(case)),("synthetic_demo",)))
+            return Result.success(draft(case,"preparing","Комплект появится в «Моих материалах». Можно вернуться позже.",navigation(guard_for(case)),("synthetic_demo",)))
         if case.step=="materials":
             return Result.success(self._materials_view(uow,case,now))
         if key:
@@ -215,11 +215,11 @@ class Application:
             if bundle and bundle.status=="ready":
                 return Result.success(self._materials_view(uow,case,now))
             if bundle and bundle.status=="preparing":
-                return Result.success(draft(case,"preparing","Готовим подтверждённый комплект. Можно продолжить позже.",navigation(guard_for(case)),("synthetic_demo",)))
+                return Result.success(draft(case,"preparing","Комплект появится в «Моих материалах». Можно вернуться позже.",navigation(guard_for(case)),("synthetic_demo",)))
         if case.selected_snapshot_id is None:
             g=guard_for(case)
             compare=action("compare","compare","navigate",NavigatePayload(destination="resume",screen="catalog"),g)
-            return Result.success(draft(case,"comparison","Готовы сравнить точные комплектации. Каталог показан по три предложения на странице; неизвестные характеристики останутся видны.",(compare,)+navigation(g),("synthetic_demo",) if case.mode=="demo" else ()))
+            return Result.success(draft(case,"comparison","Параметры сохранены. Откройте каталог и выберите предложение.",(compare,)+navigation(g),("synthetic_demo",) if case.mode=="demo" else ()))
         if case.branch is None:
             return Result.success(branch_view(case))
         preview=self._prepare_preview(uow,ctx,guard_for(case),now)
@@ -232,7 +232,7 @@ class Application:
 
     def _legacy_view(self,case):
         g=guard_for(case)
-        return draft(case,"help","Профиль этого кейса относится к прежней версии каталога. Ответы и история сохранены без изменения. Материалы доступны с предупреждением об исторических сведениях. Для актуального каталога начните новый кейс и выберите роль.",(
+        return draft(case,"help","Этот подбор создан по прежнему каталогу. Ответы и файлы сохранены.\n\nДля актуальных предложений начните новый подбор. Прежние файлы доступны с отметкой о неактуальных сведениях.",(
             action("new_case","Новый кейс с актуальным каталогом","navigate",NavigatePayload(destination="new_case"),g),
             action("materials","Мои материалы","navigate",NavigatePayload(destination="materials"),g),
             action("cases","Мои кейсы","navigate",NavigatePayload(destination="cases",screen="cases"),g)))
@@ -244,11 +244,11 @@ class Application:
         if page>=count:
             return self._failure("VALIDATION_ERROR",ctx)
         cases=uow.cases.page_live_by_owner(ctx.owner_id,5,page*5)
-        sections=[section(f"Мои кейсы · страница {page+1}/{count}. Всего: {total}")];actions=[]
+        sections=[section(f"Всего подборов: {total}"+(f" · страница {page+1}/{count}" if count>1 else ""))];actions=[]
         for n,case in enumerate(cases,page*5+1):
-            label=f"Кейс {n} · {case.last_activity_at.strftime('%d.%m.%Y')} · "+("карточка покупки" if case.branch=="purchase" else "обращение" if case.branch=="support" else "сбор сведений")
+            label=f"Подбор {n} · {case.last_activity_at.strftime('%d.%m.%Y')}\n"+("Карточка покупки" if case.branch=="purchase" else "Обращение" if case.branch=="support" else "Заполнение параметров")
             sections.append(section(label))
-            actions.extend((action(f"case_resume_{case.case_id}",f"Открыть кейс {n}","navigate",NavigatePayload(destination="resume"),guard_for(case)),action(f"case_materials_{case.case_id}",f"Материалы кейса {n}","navigate",NavigatePayload(destination="materials"),guard_for(case))))
+            actions.extend((action(f"case_resume_{case.case_id}",f"Открыть подбор {n}","navigate",NavigatePayload(destination="resume"),guard_for(case)),action(f"case_materials_{case.case_id}",f"Файлы подбора {n}","navigate",NavigatePayload(destination="materials"),guard_for(case))))
         for target in (page-1,page+1):
             if 0<=target<count:
                 actions.append(action(f"cases_page_{target}","Следующие кейсы" if target>page else "Предыдущие кейсы","navigate",NavigatePayload(destination="cases",screen="cases",page=target)))
@@ -464,7 +464,7 @@ class Application:
             if not confirmed.ok:
                 return confirmed
             updated,bundle=confirmed.value
-            view=draft(updated,"preparing","Готовим файлы. Сведения и версии зафиксированы вашим подтверждением.",navigation(guard_for(updated)),("synthetic_demo",))
+            view=draft(updated,"preparing","Сведения подтверждены. Комплект появится в «Моих материалах».",navigation(guard_for(updated)),("synthetic_demo",))
             return self._result(uow,ctx,updated,view,now,envelope.command_id,bundle.bundle_id)
         if envelope.type=="request_material":
             intent=self._request_material(uow,ctx,guard_for(case),p.artifact_id,p.disposition,now,
@@ -541,7 +541,7 @@ class Application:
                 return self._result(uow,ctx,updated,view,now,envelope.command_id)
             updated=case.model_copy(update={"dialog_revision":case.dialog_revision+1,"last_activity_at":now})
             if p.destination=="help":
-                view=draft(updated,"help","Каждый значимый ответ сохраняется после подтверждения. «Назад» позволяет исправить ответ, «Продолжить» восстанавливает шаг. Неизвестное не считается нулём или согласием. Данные пользователя в демонстрации вымышленные; происхождение каталога показано отдельно. Техническое сравнение не заменяет назначения и не обещает решения фонда.",navigation(guard_for(updated)))
+                view=draft(updated,"help","1. Укажите параметры и подтвердите ответы.\n2. Выберите предложение из каталога.\n3. Проверьте сведения и получите файлы.\n\n«Назад» — исправить ответ.\n«Продолжить» — вернуться к текущему шагу.\n«Не знаю» — оставить значение неизвестным.\n\nДемо: используйте вымышленные сведения. Сравнение не заменяет назначения специалиста; решение о помощи принимает фонд.",navigation(guard_for(updated)))
             elif p.destination=="materials":
                 updated=updated.model_copy(update={"step":"materials"})
                 try:
@@ -575,7 +575,7 @@ class Application:
             deleted=uow.cases.mark_deleted(ctx,guard_for(case),now)
             if not deleted.ok:
                 return deleted
-            view=draft(None,"deleted","Кейс удалён. Доступ к материалам закрыт. Ранее начатая внешняя отправка могла завершиться.",(
+            view=draft(None,"deleted","Доступ к материалам закрыт. Файлы, уже отправленные в MAX, могут остаться в переписке.",(
                 action("new_case","Новый кейс с актуальным каталогом","navigate",NavigatePayload(destination="new_case")),
                 action("cases","Мои кейсы","navigate",NavigatePayload(destination="cases",screen="cases"))))
             return self._result(uow,ctx,None,view,now,envelope.command_id)
@@ -1011,7 +1011,7 @@ class Application:
             self._save_case(uow,updated,case)
             g=guard_for(updated)
             confirm=action("confirm_delete","confirm_delete","delete_case",DeleteCasePayload(confirmation_handle="pending"),g)
-            view=draft(updated,"review","Удалить кейс и закрыть доступ ко всем его материалам? Действие нельзя отменить.",(confirm,)+navigation(g))
+            view=draft(updated,"review","Закрыть доступ к этому подбору и всем его материалам?\n\nЭто действие нельзя отменить.",(confirm,)+navigation(g)).model_copy(update={"title_key":"delete_confirmation.title"})
             return self._result(uow,ctx,updated,view,now,self._id())
         dialog_guard=None
         if handle.case_guard and handle.dialog_revision is not None:
@@ -1106,7 +1106,7 @@ class Application:
             elif event.kind=="text":
                 result=self._text_command(uow,ctx,event.payload.text,now,inbox_id=inbox.inbox_id)
             else:
-                result=self._result(uow,ctx,None,draft(None,"help","Работаю только в личном диалоге. Откройте личный чат с помощником, чтобы начать или продолжить кейс."),now,inbox.inbox_id)
+                result=self._result(uow,ctx,None,draft(None,"help","Откройте личный чат с помощником, чтобы начать или продолжить подбор."),now,inbox.inbox_id)
             command_succeeded=result.ok
             if not result.ok:
                 error=result.error
@@ -1157,7 +1157,7 @@ class Application:
         if not saved.ok:
             return saved
         ctx=self._actor_for(work.owner_id,updated,record.trace_id,uow=uow)
-        view=self._bind_view(uow,ctx,draft(updated,"error","Подготовка не завершена. Уже готовые части доступны в материалах. Продолжите кейс для нового результата.",navigation(guard_for(updated))),now)
+        view=self._bind_view(uow,ctx,draft(updated,"error","Не удалось подготовить весь комплект. Готовые файлы — в «Моих материалах». Продолжите подбор, чтобы повторить подготовку.",navigation(guard_for(updated))),now)
         self._outbox(uow,ctx,view,guard_for(updated),now,"bundle-failed:"+str(bundle.bundle_id))
         return Result.success(None)
 
