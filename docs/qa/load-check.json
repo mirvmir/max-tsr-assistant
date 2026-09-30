@@ -1,0 +1,51 @@
+{
+  "passed": true,
+  "external_max_calls": 0,
+  "workload": {
+    "mode": "dialogs",
+    "actors": 50,
+    "synthetic_snapshots": 1000,
+    "public_snapshots": 0,
+    "burst_events": 50,
+    "target_steady_events_per_second": 5,
+    "steady_events": 1075,
+    "observed_steady_events_per_second": 5.0,
+    "burst_events_per_second": 34.145,
+    "event_boundary": "application facade (not HTTP)"
+  },
+  "completed_dialogues": 50,
+  "ready_documents": 125,
+  "requested_documents": 125,
+  "downloaded_documents_local": 125,
+  "queued_documents_at_burst": null,
+  "document_queue_seconds": null,
+  "durable_jobs": {
+    "succeeded": 1425
+  },
+  "durable_outbox": {
+    "confirmed": 1300
+  },
+  "error_count": 0,
+  "error_codes": {},
+  "guarded_work_rejections": {},
+  "duration_seconds": 218.79,
+  "document_load_seconds": null,
+  "p95_ms": {
+    "queue_wait": 3120.652,
+    "facade_compute": 66.26,
+    "render_compute_and_poll": 88.181,
+    "local_delivery": 15.566
+  },
+  "sample_counts": {
+    "queue": 1425,
+    "facade": 1125,
+    "render": 125,
+    "delivery": 1300
+  },
+  "bounds": {
+    "render_processes": 1,
+    "delivery_threads": 1,
+    "timeout_seconds": 360
+  },
+  "methodology": "Dialogs: initial start burst, then deadline-based cadence independent of compute, bounded one-second catch-up and per-actor preceding-view guards. Observed arrivals use first/last steady admission and exclude completion wait; target tolerance2%. Documents: unpaced setup to all frozen previews, paused worker while confirmations queue all render jobs, then one worker handles burst/render/local downloads; metrics reset after setup. Queue delay is created_at to claim; render includes spawn/poll. Synthetic-only isolated schema removed. Receipts/uploads/download reads are local simulations. No proxy/network/provider measurements."
+}
